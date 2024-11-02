@@ -1,7 +1,8 @@
-"use client"; // This line marks the component as a Client Component
+"use client"; 
 
 import { useEffect, useState } from 'react';
 import { TypographyH2, TypographyP } from "@/components/ui/typography";
+import "./globals.css";
 import Canvas from "@/components/ui/canvas";
 
 export default function Home() {
@@ -39,26 +40,33 @@ export default function Home() {
   return (
     <>
       <Canvas />
+    <div className="flex flex-col items-center min-h-screen pt-10 space-y-14 bg-[#FEFEC8]">
+    <img src="/InkSmash1.png" alt="InkSmash Logo" className="w-80"/>
+    {/* <img src="/InkSmash2.png" alt="InkSmash Logo" className="w-80 h-auto"/> */}
 
-      <TypographyH2>Welcome to the T4SG starter project!</TypographyH2>
-      <TypographyP>
-        This starter project is styled with Tailwind CSS and uses shadcn/ui as a component library. Feel free to add
-        your own components!
-      </TypographyP>
-      <TypographyP>
-        This page is an unprotected route accessible to anyone who visits the website. Log in to view authenticated
-        routes!
-      </TypographyP>
-      {json && (
-        <TypographyP>
-          <strong>API Response:</strong> {JSON.stringify(json)}
-        </TypographyP>
-      )}
-      {error && (
-        <TypographyP style={{ color: 'red' }}>
-          <strong>Error:</strong> {error}
-        </TypographyP>
-      )}
-    </>
-  );
+    <div className="relative w-full max-w-[460px] ">
+      <iframe 
+        src="https://giphy.com/embed/3o6ZtdCeyBpLQ1J2aA" 
+        width="100%" 
+        height="258"
+        // className="absolute top-0 left-0 w-full h-full"
+        className="giphy-embed"
+        allowFullScreen>
+      </iframe>
+      <div className="absolute inset-0"></div>
+    </div>
+    
+    <div className="flex flex-col items-center w-full max-w-sm space-y-4">
+      <button className="w-full h-20 py-4 text-xl font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition">
+        Play
+      </button>
+      <button className="w-full py-4 text-xl font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition">
+        Create a Private Room
+      </button>
+    </div>
+  </div>
+  </>
+);
 }
+
+{/* <p> <strong>API Response:</strong> {JSON.stringify(json)} </p> */}
