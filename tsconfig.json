@@ -36,5 +36,5 @@
     ".eslintrc.cjs",
     "next.config.js"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["server.mjs", "node_modules", "dist"]
 }

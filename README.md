@@ -125,7 +125,7 @@ git clone git@github.com:hcs-t4sg/starter-project-2023-v2.git
    SECRET_SUPABASE_CONNECTION_STRING="postgresql://postgres:YourDatabasePasswordHere@db.abcdefghijklmnopqrst.supabase.co:5432/postgres"
    ```
 
-You should not share these keys publicly, especially the `SECRET_SUPABASE_CONNECTION_STRING`. Note that this project uses a package from the popular [T3 stack](https://create.t3.gg/) to validate and provide typesafety to environment variables in `env.mjs` (more on this below). When using these environment variables in your code, you can import them from `env.mjs`. `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used in the codebase itself and are thus included in this file. `SECRET_SUPABASE_CONNECTION_STRING` is used only in a helper script in `package.json` and not in the app itself, so it doesn't need to be validated.
+You should not share these keys publicly, especially the `SECRET_SUPABASE_CONNECTION_STRING`. Note that this project uses a package from the popular [T3 stack](https://create.t3.gg/) to validate and provide typesafety to environment variables in `env.cjs` (more on this below). When using these environment variables in your code, you can import them from `env.cjs`. `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used in the codebase itself and are thus included in this file. `SECRET_SUPABASE_CONNECTION_STRING` is used only in a helper script in `package.json` and not in the app itself, so it doesn't need to be validated.
 
 #### (4) Supabase Database Setup
 
@@ -282,7 +282,7 @@ This folder contains utility functions and type definitions that facilitate both
 The rest of the repository includes configuration and other files that collectively ensure that the project maintains high code quality, consistent styling, and secure environment variable management, while also providing necessary configurations for development and production environments.
 
 - `.env`: Stores environment variables that configure various aspects of the application, such as Supabase connection.
-- `env.mjs`: Validates and provides type safety for environment variables.
+- `env.cjs`: Validates and provides type safety for environment variables.
 - `.gitignore`: Specifies which files and directories should be ignored by Git.
 - `package.json`, `package-lock.json`: Defines the project's metadata, dependencies, scripts, and other configurations.
 - `next.config.js`: Configures various settings for the Next.js application.
@@ -297,7 +297,7 @@ The rest of the repository includes configuration and other files that collectiv
 
 - **Adding new components**: Create new files in the `components/` directory. For UI-specific components, create a new file in the `components/ui` directory.
 
-- **Updating environment variables**: Modify the `.env` file and update `env.mjs` to reflect the new environment variables.
+- **Updating environment variables**: Modify the `.env` file and update `env.cjs` to reflect the new environment variables.
 
 - **Updating styles**: Modify `tailwind.config.ts` and `app/globals.css` to update the styles of the webapp.
 

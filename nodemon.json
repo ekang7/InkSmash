@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "watch": [
+    "server.mjs",
+    "dist/"
+  ],
+  "exec": "node server.mjs",
+  "ext": "js,ts"
+}

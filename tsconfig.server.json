@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "noEmit": false,
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "allowJs": true,
+    "isolatedModules": false
+  },
+  "include": [
+    "game/**/*.ts",
+    "websocket/**/*.ts",
+  ]
+}
