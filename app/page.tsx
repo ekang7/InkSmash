@@ -38,7 +38,7 @@ export default function Home() {
 
   return (
     <>
-      <Canvas width={800} height={600} x={100} y={50} />
+      <Canvas />
 
       <TypographyH2>Welcome to the T4SG starter project!</TypographyH2>
       <TypographyP>
