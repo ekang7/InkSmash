@@ -8,7 +8,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:compile": "tsc --project tsconfig.server.json --watch",
+    "dev:compile": "concurrently \"tsc --project tsconfig.server.json --watch\" \"tsc-alias -p tsconfig.server.json\"",
     "dev:server": "nodemon",
     "dev": "concurrently \"npm run dev:compile\" \"npm run dev:server\"",
     "build:server": "tsc --project tsconfig.server.json",
@@ -90,6 +90,7 @@
     "prettier-plugin-tailwindcss": "^0.6.5",
     "supabase": "^1.176.10",
     "tailwindcss": "^3.4.14",
+    "tsc-alias": "^1.8.10",
     "typescript": "^5.4.5"
   }
 }

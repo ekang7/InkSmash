@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Character } from "../game/types.js";
+import { Character } from "@/game/types";
 
 interface WebsocketEvent {
   type: string

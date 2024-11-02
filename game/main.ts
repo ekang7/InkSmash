@@ -1,6 +1,6 @@
 import { GameState } from "./types.js";
 import { Socket } from "socket.io";
-import { send_event } from "../websocket/events.js";
+import { on_event, send_event } from "@/websocket/events";
 
 const rooms = new Map<string, GameState>();
 
