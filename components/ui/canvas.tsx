@@ -7,6 +7,7 @@ import {
   SketchProps,
 } from "@p5-wrapper/react";
 import p5Types from "p5";
+import Timer from "./timer";
 
 function sketch(p5: P5CanvasInstance<SketchProps>) {
   // Variables
@@ -252,10 +253,13 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
   };
 }
 
-export default function App() {
+export default function Canvas(props: { initialTime: number}) {
   return (
-    <div>
-      <div id="canvas-container" style={{ position: "relative" }}></div>
+    <div className="flex flex-col items-center justify-center">
+      <div id="canvas-container" className="relative">
+        <Timer initialTime={props.initialTime} />
+        <ReactP5Wrapper sketch={sketch} />
+      </div>
       <div
         id="controls"
         style={{
@@ -265,7 +269,6 @@ export default function App() {
           justifyContent: "center",
         }}
       ></div>
-      <ReactP5Wrapper sketch={sketch} />
     </div>
   );
 }
