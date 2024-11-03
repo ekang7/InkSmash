@@ -1,15 +1,113 @@
-"use client"
+// Canvas.tsx
+"use client";
 
-import React from "react";
-import {
-  P5CanvasInstance,
-  ReactP5Wrapper,
-  SketchProps,
-} from "@p5-wrapper/react";
+import React, { useState, useEffect } from "react";
+import { ReactP5Wrapper, SketchProps } from "@p5-wrapper/react";
 import p5Types from "p5";
-import Timer from "./timer";
 
-function sketch(p5: P5CanvasInstance<SketchProps>) {
+// Define the props expected by the Canvas component
+interface CanvasProps {
+  initialTime: number;
+}
+
+const Canvas: React.FC<CanvasProps> = ({ initialTime }) => {
+  const [timeRemaining, setTimeRemaining] = useState<number>(initialTime);
+  const [showCanvas, setShowCanvas] = useState<boolean>(true);
+  const [isDrawingEnabled, setIsDrawingEnabled] = useState<boolean>(true); // New state to control drawing
+
+  useEffect(() => {
+    let timerId: NodeJS.Timeout;
+
+    if (timeRemaining > 0) {
+      timerId = setInterval(() => {
+        setTimeRemaining((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timerId);
+            setTimeout(() => {
+              setIsDrawingEnabled(false); // Disable drawing when time runs out
+            }, 1500);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+
+    // Cleanup the interval on component unmount
+    return () => clearInterval(timerId);
+  }, [timeRemaining]);
+
+  // Function to close the canvas
+  const closeCanvas = () => {
+    setShowCanvas(false);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <div id="canvas-container" className="relative">
+        {/* Timer Progress Bar */}
+        <div style={{ width: "100%" }}>
+          <div
+            style={{
+              position: "relative",
+              height: "30px",
+              backgroundColor: "#e0e0e0",
+              borderRadius: "15px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${(timeRemaining / initialTime) * 100}%`,
+                backgroundColor: "#76c7c0",
+                transition: "width 1s linear",
+              }}
+            ></div>
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                height: "100%",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: "bold",
+              }}
+            >
+              {timeRemaining}s
+            </div>
+          </div>
+        </div>
+
+        {/* Render the P5 Canvas if showCanvas is true */}
+        {showCanvas && (
+          <ReactP5Wrapper
+            sketch={sketch}
+            closeCanvas={closeCanvas}
+            isDrawingEnabled={isDrawingEnabled} // Pass the state as props
+          />
+        )}
+      </div>
+      <div
+        id="controls"
+        style={{
+          display: showCanvas ? "flex" : "none",
+          flexWrap: "wrap",
+          marginTop: "10px",
+          justifyContent: "center",
+        }}
+      ></div>
+    </div>
+  );
+};
+
+export default Canvas;
+
+// Define the sketch function outside the Canvas component
+const sketch = (p5: p5Types) => {
   // Variables
   let squareSize: number;
   const numSquares = 80;
@@ -28,6 +126,10 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
   let canvas: p5Types.Graphics;
 
   let isSetupComplete = false;
+
+  // Variables to handle props
+  let isDrawingEnabled = true;
+  let closeCanvas: () => void = () => {};
 
   p5.setup = () => {
     updateCanvasSize();
@@ -55,7 +157,11 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
     saveButton = p5.createButton("SAVE");
     saveButton.size(80, 32);
     saveButton.parent("controls");
-    saveButton.mousePressed(closeCanvas);
+    saveButton.mousePressed(() => {
+      // Perform any save actions
+      // Then close the canvas
+      closeCanvas();
+    });
 
     // Download Button
     downloadButton = p5.createButton("DOWNLOAD PNG");
@@ -81,6 +187,7 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
     isSetupComplete = true;
   };
 
+  // Function to update canvas size based on window size
   function updateCanvasSize() {
     // Adjust canvas size based on window size
     canvasWidth = p5.min(p5.windowWidth, p5.windowHeight) * 0.9;
@@ -98,18 +205,21 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
     redrawCanvas();
   };
 
+  // Function to create the grid on the canvas
   function createGrid() {
     canvas.background(backgroundColor);
     canvas.strokeWeight(1);
     canvas.stroke(150);
   }
 
+  // Function to switch between erase and draw modes
   function switchDrawMode() {
     eraseMode = !eraseMode;
-    let text = eraseMode ? "DRAW MODE" : "ERASE MODE";
-    eraseButton.html(text);
+    let buttonText = eraseMode ? "DRAW MODE" : "ERASE MODE";
+    eraseButton.html(buttonText);
   }
 
+  // Function to clear the canvas
   function clean() {
     createGrid();
     let transparentColor = p5.color(255, 255, 255, 0);
@@ -120,6 +230,7 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
     }
   }
 
+  // Function to download the canvas as a PNG
   function download(filename = "myCharacter") {
     if (!isSetupComplete || !canvas) {
       console.error("Download attempted before initialization");
@@ -129,20 +240,97 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
     }
   }
 
-  function closeCanvas() {
-    [colorPicker, eraseButton, clearButton, saveButton, downloadButton].forEach(
-      (button) => {
-        button.hide();
+  let prevX: number | null = null;
+  let prevY: number | null = null;
+
+  // Mouse pressed event handler
+  p5.mousePressed = () => {
+    if (!isSetupComplete || !isDrawingEnabled) return; // Check if drawing is enabled
+    prevX = snap(p5.mouseX);
+    prevY = snap(p5.mouseY);
+    fillSquare(prevX, prevY);
+  };
+
+  // Mouse dragged event handler
+  p5.mouseDragged = () => {
+    if (!isSetupComplete || !isDrawingEnabled) return; // Check if drawing is enabled
+    const x = snap(p5.mouseX);
+    const y = snap(p5.mouseY);
+    if (prevX !== null && prevY !== null) {
+      drawLine(prevX, prevY, x, y);
+    }
+    prevX = x;
+    prevY = y;
+  };
+
+  // Mouse released event handler
+  p5.mouseReleased = () => {
+    if (!isDrawingEnabled) return; // Check if drawing is enabled
+    prevX = null;
+    prevY = null;
+  };
+
+  // Handle touch events
+  p5.touchStarted = () => {
+    if (!isDrawingEnabled) return false; // Prevent touch if drawing is disabled
+    p5.mousePressed();
+  };
+
+  p5.touchMoved = () => {
+    if (!isDrawingEnabled) return false; // Prevent touch if drawing is disabled
+    p5.mouseDragged();
+    // Prevent default behavior to avoid scrolling
+    return false;
+  };
+
+  p5.touchEnded = () => {
+    if (!isDrawingEnabled) return false; // Prevent touch if drawing is disabled
+    p5.mouseReleased();
+  };
+
+  // Function to redraw the canvas when resized
+  function redrawCanvas() {
+    // Redraw existing squares when canvas is resized
+    for (let y = 0; y < numSquares; y++) {
+      for (let x = 0; x < numSquares; x++) {
+        if (appearance[y][x].levels[3] !== 0) {
+          canvas.fill(appearance[y][x]);
+          canvas.noStroke();
+          canvas.square(x * squareSize, y * squareSize, squareSize);
+        }
       }
-    );
-    canvas.remove();
+    }
   }
 
-  function snap(p: number) {
+  // Draw loop
+  p5.draw = () => {
+    p5.image(canvas, 0, 0);
+    if (!isDrawingEnabled) {
+      // Optional: Provide visual feedback when drawing is disabled
+      p5.fill(0, 0, 0, 100);
+      p5.rect(0, 0, canvasWidth, canvasHeight);
+      p5.fill(255);
+      p5.textAlign(p5.CENTER, p5.CENTER);
+      p5.textSize(32);
+      p5.text("Drawing Disabled", canvasWidth / 2, canvasHeight / 2);
+    }
+  };
+
+  // Define updateWithProps to handle incoming props
+  p5.updateWithProps = (props: SketchProps) => {
+    if (props.isDrawingEnabled !== undefined) {
+      isDrawingEnabled = props.isDrawingEnabled;
+    }
+    if (props.closeCanvas !== undefined) {
+      closeCanvas = props.closeCanvas;
+    }
+  };
+
+  // Helper functions
+  function snap(p: number): number {
     return Math.floor(p / squareSize);
   }
 
-  // Function to draw a line between two points and fill squares along the line
   function drawLine(x0: number, y0: number, x1: number, y1: number) {
     const dx = Math.abs(x1 - x0);
     const dy = -Math.abs(y1 - y0);
@@ -193,82 +381,4 @@ function sketch(p5: P5CanvasInstance<SketchProps>) {
       console.error("Error in fillSquare:", error);
     }
   }
-
-  let prevX: number | null = null;
-  let prevY: number | null = null;
-
-  p5.mousePressed = () => {
-    if (!isSetupComplete) return;
-    prevX = snap(p5.mouseX);
-    prevY = snap(p5.mouseY);
-    fillSquare(prevX, prevY);
-  };
-
-  p5.mouseDragged = () => {
-    if (!isSetupComplete) return;
-    const x = snap(p5.mouseX);
-    const y = snap(p5.mouseY);
-    if (prevX !== null && prevY !== null) {
-      drawLine(prevX, prevY, x, y);
-    }
-    prevX = x;
-    prevY = y;
-  };
-
-  p5.mouseReleased = () => {
-    prevX = null;
-    prevY = null;
-  };
-
-  // Handle touch events
-  p5.touchStarted = () => {
-    p5.mousePressed();
-  };
-
-  p5.touchMoved = () => {
-    p5.mouseDragged();
-    // Prevent default behavior to avoid scrolling
-    return false;
-  };
-
-  p5.touchEnded = () => {
-    p5.mouseReleased();
-  };
-
-  function redrawCanvas() {
-    // Redraw existing squares when canvas is resized
-    for (let y = 0; y < numSquares; y++) {
-      for (let x = 0; x < numSquares; x++) {
-        if (appearance[y][x].levels[3] !== 0) {
-          canvas.fill(appearance[y][x]);
-          canvas.noStroke();
-          canvas.square(x * squareSize, y * squareSize, squareSize);
-        }
-      }
-    }
-  }
-
-  p5.draw = () => {
-    p5.image(canvas, 0, 0);
-  };
-}
-
-export default function Canvas(props: { initialTime: number}) {
-  return (
-    <div className="flex flex-col items-center justify-center">
-      <div id="canvas-container" className="relative">
-        <Timer initialTime={props.initialTime} />
-        <ReactP5Wrapper sketch={sketch} />
-      </div>
-      <div
-        id="controls"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          marginTop: "10px",
-          justifyContent: "center",
-        }}
-      ></div>
-    </div>
-  );
-}
+};
