@@ -27,7 +27,7 @@ export default function Drawing() {
           </div>
         )}
         <div className="relative mt-8">
-          <Canvas initialTime={100} next_page="/score" />
+          <Canvas initialTime={100} next_page="/display_info/character" />
         </div>
       </div>
     </div>
