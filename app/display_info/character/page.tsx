@@ -8,6 +8,8 @@ import { send_event, single_event } from "@/websocket/events";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { FaPlay } from "react-icons/fa";
+import { FaPencil } from "react-icons/fa6";
 
 export default function DisplayCharacter() {
   const [info, setInfo] = useState<Character | null>(null);
@@ -15,30 +17,15 @@ export default function DisplayCharacter() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [loading, setLoading] = useState(true);
-  const [countdown, setCountdown] = useState(15);
+  const continueRound = async () => {
+    send_event(socket, "continue_round");
+    await single_event(socket, "start_drawing");
 
-  useEffect(() => {
-    if (loading) return;
-
-    if (countdown <= 0) {
-      (async () => {
-        send_event(socket, "continue_round");
-        await single_event(socket, "start_drawing");
-
-        const name = searchParams.get("name") ?? "Player";
-        const roomCode = searchParams.get("room") ?? "ABCDEF";
-        const playerNum = searchParams.get("player") ?? "1";
-        router.push(`/drawing/ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
-      })();
-    }
-
-    const interval = setInterval(() => {
-      setCountdown(countdown - 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [loading, countdown, router]);
+    const name = searchParams.get("name") ?? "Player";
+    const roomCode = searchParams.get("room") ?? "ABCDEF";
+    const playerNum = searchParams.get("player") ?? "1";
+    router.push(`/drawing/ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+  };
 
   // Wait for character_info event from the server
   // May take a while due to AI generation
@@ -46,17 +33,23 @@ export default function DisplayCharacter() {
     const fetchCharacterInfo = async () => {
       const { info } = await single_event(socket, "character_info");
       setInfo(info);
-      setLoading(false);
     };
     fetchCharacterInfo();
   }, []);
 
   return (
     <div className="flex h-screen min-h-screen flex-col items-center justify-center space-y-8 bg-[#FEFEC8]">
-      {countdown > 0 && <TypographyH1 className="text-4xl font-bold text-black">{countdown}</TypographyH1>}
       {info === null ? (
         <TypographyP className="text-2xl font-bold text-black">Generating character...</TypographyP>
-      ) : (
+      ) : <>
+        <button
+          onClick={continueRound}
+          className={"flex w-80 transform items-center justify-center rounded-xl py-4 text-2xl font-bold text-white shadow-lg transition-transform hover:scale-105 bg-green-500 hover:bg-green-600"}
+        >
+          <FaPencil className="mr-4 text-2xl" />
+          Draw First Ability
+        </button>
+
         <Card
           style={{
             backgroundColor: "#FEFEC8",
@@ -82,7 +75,7 @@ export default function DisplayCharacter() {
             <TypographyP className="text-left">{info.str}</TypographyP>
           </CardContent>
         </Card>
-      )}
+      </>}
     </div>
   );
 }
