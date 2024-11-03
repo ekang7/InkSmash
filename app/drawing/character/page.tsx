@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Round from '@/components/ui/round';
 import Canvas from '@/components/ui/canvas';
 import { TypographyH1 } from '@/components/ui/typography';
@@ -70,7 +70,7 @@ export function Ability() {
           </div>
         )}
         <div className="relative mt-8">
-          <Canvas initialTime={100} next_page="/score" />
+          <Canvas initialTime={100} next_page="/character/ability" />
         </div>
       </div>
     </div>
