@@ -29,7 +29,7 @@ export async function callOpenAi({
     imagePaths.forEach((imagePath) => {
       const imageBuffer = fs.readFileSync(path.resolve(imagePath));
       const base64Image = imageBuffer.toString("base64");
-      imageBlobs.push(base64Image);
+      imageBlobs.push("data:image/png;base64," + base64Image);
     });
 
     const request_message: { type: string; text?: string; image_url?: { url: string } }[] = [
@@ -44,7 +44,7 @@ export async function callOpenAi({
       request_message.push({
         type: "image_url",
         image_url: {
-          url: "data:image/png;base64," + base64Image,
+          url: base64Image,
         },
       });
     });

@@ -13,10 +13,6 @@ export class GameManager {
     this.rooms = new Map<string, GameState>();
   }
 
-  public _debug_print_rooms() {
-    console.log(this.rooms);
-  }
-
   public handle_connection(socket: Socket) {
     const room_code = socket.handshake.auth.room as string;
     console.log(`Received connection for room ${room_code}`);
@@ -124,7 +120,13 @@ export class GameManager {
     send_event(room.player_2!.ws, "start_drawing");
 
     // Wait 30 seconds before finishing drawing
-    await this.delay(30);
+    for(let i = 30; i > 0; i--) {
+      send_event(room.player_1!.ws, "timer_drawing", {time: i});
+      send_event(room.player_2!.ws, "timer_drawing", {time: i});
+      await this.delay(1000);
+    }
+    send_event(room.player_1!.ws, "timer_drawing", {time: 0});
+    send_event(room.player_2!.ws, "timer_drawing", {time: 0});
 
     send_event(room.player_1!.ws, "finish_drawing");
     send_event(room.player_2!.ws, "finish_drawing");
@@ -143,6 +145,7 @@ export class GameManager {
       });
       if(gpt.errorCode !== 200) {
         console.error("Failed to generate character for player");
+        console.error(gpt);
         return {name: "??", description: "??", hp: 100, def: 10, str: 10, img: img, moveset: []};
       }
 
@@ -174,7 +177,14 @@ export class GameManager {
     send_event(room.player_2!.ws, "start_drawing");
 
     // Wait 20 seconds before finishing drawing
-    await this.delay(20);
+    // Wait 30 seconds before finishing drawing
+    for(let i = 20; i > 0; i--) {
+      send_event(room.player_1!.ws, "timer_drawing", {time: i});
+      send_event(room.player_2!.ws, "timer_drawing", {time: i});
+      await this.delay(1000);
+    }
+    send_event(room.player_1!.ws, "timer_drawing", {time: 0});
+    send_event(room.player_2!.ws, "timer_drawing", {time: 0});
 
     send_event(room.player_1!.ws, "finish_drawing");
     send_event(room.player_2!.ws, "finish_drawing");

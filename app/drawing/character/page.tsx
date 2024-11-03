@@ -1,20 +1,41 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Round from '@/components/ui/round';
 import Canvas from '@/components/ui/canvas';
 import { TypographyH1 } from '@/components/ui/typography';
+import { on_event, send_event, single_event } from "@/websocket/events";
+import { socket } from "@/socket";
 
 export default function Drawing() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get("name") ?? "Player";
   const [showRound, setShowRound] = useState(true);
+
+  const [timeRemaining, setTimeRemaining] = useState(30);
 
   // Hide overlay after a delay
   const handleHideRound = () => {
     setShowRound(false);
   };
+
+  useEffect(() => {
+    on_event(socket, "timer_drawing", ({time}) => {
+      setTimeRemaining(time);
+    });
+  }, []);
+
+  const onCanvasExport = async (imageBlob: string) => {
+    console.log("Image blob:", imageBlob);
+    await single_event(socket, "finish_drawing");
+    send_event(socket, "submit_drawing", { blob: imageBlob });
+
+    const roomCode = searchParams.get("room") ?? "ABCDEF";
+    const playerNum = searchParams.get("player") ?? "1";
+    router.push(`/display_info/character?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+  }
 
   return (
     <div className="min-h-screen bg-[#FEFEC8]">
@@ -27,7 +48,7 @@ export default function Drawing() {
           </div>
         )}
         <div className="relative mt-8">
-          <Canvas initialTime={100} next_page="/display_info/character" />
+          <Canvas initialTime={30} timeRemaining={timeRemaining} export_callback={onCanvasExport} />
         </div>
       </div>
     </div>

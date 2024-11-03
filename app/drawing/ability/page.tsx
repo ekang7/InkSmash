@@ -1,12 +1,15 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Round from '@/components/ui/round';
 import Canvas from '@/components/ui/canvas';
 import { TypographyH1 } from '@/components/ui/typography';
+import { on_event, send_event, single_event } from "@/websocket/events";
+import { socket } from "@/socket";
 
 export default function DrawingAbility() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get("name") ?? "Player";
   const [showRound, setShowRound] = useState(true);
@@ -14,10 +17,28 @@ export default function DrawingAbility() {
   // TODO: STATE FOR ROUND NUMBER
   const [roundNumber, setRoundNumber] = useState(2);
 
+  const [timeRemaining, setTimeRemaining] = useState(20);
+
   // Hide overlay after a delay
   const handleHideRound = () => {
     setShowRound(false);
   };
+
+  useEffect(() => {
+    on_event(socket, "timer_drawing", ({time}) => {
+      setTimeRemaining(time);
+    });
+  }, []);
+
+  const onCanvasExport = async (imageBlob: string) => {
+    console.log("Image blob:", imageBlob);
+    await single_event(socket, "finish_drawing");
+    send_event(socket, "submit_drawing", { blob: imageBlob });
+
+    const roomCode = searchParams.get("room") ?? "ABCDEF";
+    const playerNum = searchParams.get("player") ?? "1";
+    router.push(`/select_ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#FEFEC8] space-y-8">
@@ -29,7 +50,7 @@ export default function DrawingAbility() {
           </div>
         )}
         <div className="relative mt-8">
-          <Canvas initialTime={30} next_page="/select_ability" />
+          <Canvas initialTime={20} timeRemaining={timeRemaining} export_callback={onCanvasExport} />
         </div>
       </div>
     </div>

@@ -1,40 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ReactP5Wrapper, SketchProps } from "@p5-wrapper/react";
 import p5Types from "p5";
-import { useRouter } from 'next/navigation';
 
 interface CanvasProps {
   initialTime: number;
-  next_page: string;
+  timeRemaining: number;
+  export_callback?: (imageBlob: string) => void;
 }
 
-const Canvas: React.FC<CanvasProps> = ({ initialTime, next_page }) => {
-  const router = useRouter(); // For navigation
-  const [timeRemaining, setTimeRemaining] = useState<number>(initialTime);
+const Canvas: React.FC<CanvasProps> = ({ initialTime, timeRemaining, export_callback = () => {} }) => {
   const [showCanvas, setShowCanvas] = useState<boolean>(true);
   const [isDrawingEnabled, setIsDrawingEnabled] = useState<boolean>(true);
 
+  const { canvas, sketch } = useMemo(() => {
+    const canvas = new P5Sketch();
+    return {canvas, sketch: canvas.sketch.bind(canvas)};
+  }, []);
+
   useEffect(() => {
-    let timerId: NodeJS.Timeout;
-    if (timeRemaining > 0) {
-      timerId = setInterval(() => {
-        setTimeRemaining((prevTime) => {
-          if (prevTime <= 1) {
-            clearInterval(timerId);
-            setIsDrawingEnabled(false);
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
-    } else {
-      // Redirect to "/score" after time runs out
-      router.push(next_page);
+    if(timeRemaining <= 0) {
+      setIsDrawingEnabled(false);
+      export_callback(canvas.download());
     }
-    return () => clearInterval(timerId);
-  }, [timeRemaining, router, next_page]);
+  }, [timeRemaining]);
 
   const closeCanvas = () => {
     setShowCanvas(false);
@@ -102,189 +92,190 @@ const Canvas: React.FC<CanvasProps> = ({ initialTime, next_page }) => {
 
 export default Canvas;
 
-const sketch = (p5: p5Types) => {
-  let squareSize: number;
-  const numSquaresWidth = 80;
-  const numSquaresHeight = Math.floor(1.5 * numSquaresWidth);
-  let canvasWidth: number;
-  let canvasHeight: number;
-  let appearance: p5Types.Color[][] = [];
-  let backgroundColor: p5Types.Color;
-  let eraseMode = false;
-  let colorPicker: p5Types.Element;
-  let eraseButton: p5Types.Element;
-  let clearButton: p5Types.Element;
-  let saveButton: p5Types.Element;
-  let downloadButton: p5Types.Element;
-  let canvas: p5Types.Graphics;
-  let isSetupComplete = false;
-  let isDrawingEnabled = true;
-  let closeCanvas: () => void = () => {};
+class P5Sketch {
+  private p5: p5Types | null;
+  private squareSize: number;
+  private numSquaresWidth = 80;
+  private numSquaresHeight = Math.floor(1.5 * this.numSquaresWidth);
+  private canvasWidth: number;
+  private canvasHeight: number;
+  private appearance: p5Types.Color[][] = [];
+  private backgroundColor: p5Types.Color;
+  private eraseMode = false;
+  private colorPicker: p5Types.Element;
+  private eraseButton: p5Types.Element;
+  private canvas: p5Types.Graphics;
+  private isSetupComplete = false;
+  private isDrawingEnabled = true;
+  private closeCanvas: () => void;
 
-  p5.setup = () => {
-    updateCanvasSize();
-    let cnv = p5.createCanvas(canvasWidth, canvasHeight);
-    cnv.parent("canvas-container");
-    canvas = p5.createGraphics(canvasWidth, canvasHeight);
-    backgroundColor = p5.color(255);
-    canvas.background(backgroundColor);
-    createGrid();
+  constructor() {
+    this.p5 = null;
+    this.squareSize = 0;
+    this.canvasWidth = 0;
+    this.canvasHeight = 0;
+  }
 
-    colorPicker = p5.createColorPicker("#49DFFD");
-    colorPicker.parent("controls");
-    colorPicker.size(50, 28);
+  public sketch(p5: p5Types) {
+    p5.setup = () => {
+      this.p5 = p5;
 
-    eraseButton = p5.createButton("Erase");
-    eraseButton.size(100, 32);
-    eraseButton.parent("controls");
-    eraseButton.style("color", "black");
-    eraseButton.mousePressed(switchDrawMode);
+      this.updateCanvasSize(p5);
+      const cnv = p5.createCanvas(this.canvasWidth, this.canvasHeight);
+      cnv.parent("canvas-container");
+      this.canvas = p5.createGraphics(this.canvasWidth, this.canvasHeight);
+      this.backgroundColor = p5.color(255);
+      this.canvas.background(this.backgroundColor);
+      this.createGrid();
 
-    // saveButton = p5.createButton("SAVE");
-    // saveButton.size(80, 32);
-    // saveButton.parent("controls");
-    // saveButton.style("color", "black");
-    // saveButton.mousePressed(closeCanvas);
+      this.colorPicker = p5.createColorPicker("#49DFFD");
+      this.colorPicker.parent("controls");
+      this.colorPicker.size(50, 28);
 
-    // downloadButton = p5.createButton("DOWNLOAD PNG");
-    // downloadButton.size(150, 32);
-    // downloadButton.parent("controls");
-    // downloadButton.style("color", "black");
-    // downloadButton.mousePressed(download);
+      this.eraseButton = p5.createButton("Erase");
+      this.eraseButton.size(100, 32);
+      this.eraseButton.parent("controls");
+      this.eraseButton.style("color", "black");
+      this.eraseButton.mousePressed(this.switchDrawMode.bind(this));
 
-    clearButton = p5.createButton("Clear");
-    clearButton.size(80, 32);
-    clearButton.parent("controls");
-    clearButton.style("color", "black");
-    clearButton.mousePressed(clean);
+      const clearButton = p5.createButton("Clear");
+      clearButton.size(80, 32);
+      clearButton.parent("controls");
+      clearButton.style("color", "black");
+      clearButton.mousePressed(this.clean.bind(this));
 
-    let transparentColor = p5.color(255, 255, 255, 0);
-    for (let j = 0; j < numSquaresHeight; j++) {
-      appearance[j] = [];
-      for (let i = 0; i < numSquaresWidth; i++) {
-        appearance[j][i] = transparentColor;
+      const transparentColor = p5.color(255, 255, 255, 0);
+      for (let j = 0; j < this.numSquaresHeight; j++) {
+        this.appearance[j] = [];
+        for (let i = 0; i < this.numSquaresWidth; i++) {
+          this.appearance[j][i] = transparentColor;
+        }
       }
-    }
 
-    isSetupComplete = true;
-  };
+      let prevX: number | null = null;
+      let prevY: number | null = null;
 
-  function updateCanvasSize() {
-    canvasWidth = p5.min(p5.windowWidth, p5.windowHeight) * 0.9;
-    canvasHeight = (canvasWidth / numSquaresWidth) * numSquaresHeight;
-    squareSize = canvasWidth / numSquaresWidth;
+      p5.mousePressed = () => {
+        if (!this.isSetupComplete || !this.isDrawingEnabled) return;
+        prevX = this.snap(p5.mouseX);
+        prevY = this.snap(p5.mouseY);
+        this.fillSquare(p5, prevX, prevY);
+      };
+
+      p5.mouseDragged = () => {
+        if (!this.isSetupComplete || !this.isDrawingEnabled) return;
+        const x = this.snap(p5.mouseX);
+        const y = this.snap(p5.mouseY);
+        if (prevX !== null && prevY !== null) {
+          this.drawLine(p5, prevX, prevY, x, y);
+        }
+        prevX = x;
+        prevY = y;
+      };
+
+      p5.mouseReleased = () => {
+        if (!this.isDrawingEnabled) return;
+        prevX = null;
+        prevY = null;
+      };
+
+      p5.touchStarted = () => {
+        if (!this.isDrawingEnabled) return false;
+        p5.mousePressed();
+      };
+
+      p5.touchMoved = () => {
+        if (!this.isDrawingEnabled) return false;
+        p5.mouseDragged();
+        return false;
+      };
+
+      p5.touchEnded = () => {
+        if (!this.isDrawingEnabled) return false;
+        p5.mouseReleased();
+      };
+
+      p5.draw = () => {
+        p5.image(this.canvas, 0, 0);
+        if (!this.isDrawingEnabled) {
+          p5.fill(0, 0, 0, 100);
+          p5.rect(0, 0, this.canvasWidth, this.canvasHeight);
+          p5.fill(255);
+          p5.textAlign(p5.CENTER, p5.CENTER);
+          p5.textSize(32);
+          p5.text("Time's Up!", this.canvasWidth / 2, this.canvasHeight / 2);
+        }
+      };
+
+      p5.updateWithProps = (props: SketchProps) => {
+        if (props.isDrawingEnabled !== undefined) {
+          this.isDrawingEnabled = props.isDrawingEnabled;
+        }
+        if (props.closeCanvas !== undefined) {
+          this.closeCanvas = props.closeCanvas;
+        }
+      };
+
+      this.isSetupComplete = true;
+    };
   }
 
-
-  function createGrid() {
-    canvas.background(backgroundColor);
-    canvas.strokeWeight(1);
-    canvas.stroke(150);
+  private updateCanvasSize(p5: p5Types) {
+    this.canvasWidth = p5.min(p5.windowWidth, p5.windowHeight) * 0.9;
+    this.canvasHeight = (this.canvasWidth / this.numSquaresWidth) * this.numSquaresHeight;
+    this.squareSize = this.canvasWidth / this.numSquaresWidth;
   }
 
-  function switchDrawMode() {
-    eraseMode = !eraseMode;
-    const buttonText = eraseMode ? "Draw" : "Erase";
-    eraseButton.html(buttonText);
+  private createGrid() {
+    this.canvas.background(this.backgroundColor);
+    this.canvas.strokeWeight(1);
+    this.canvas.stroke(150);
   }
 
-  function clean() {
+  private switchDrawMode() {
+    this.eraseMode = !this.eraseMode;
+    const buttonText = this.eraseMode ? "Draw" : "Erase";
+    this.eraseButton.html(buttonText);
+  }
+
+  private clean(p5: p5Types) {
     const transparentColor = p5.color(255, 255, 255, 0);
-    for (let j = 0; j < numSquaresHeight; j++) {
-      for (let i = 0; i < numSquaresWidth; i++) {
-        appearance[j][i] = transparentColor;
+    for (let j = 0; j < this.numSquaresHeight; j++) {
+      for (let i = 0; i < this.numSquaresWidth; i++) {
+        this.appearance[j][i] = transparentColor;
       }
     }
-    createGrid();
+    this.createGrid();
   }
 
-  function download(filename = "myCharacter") {
-    if (isSetupComplete && canvas) {
-      p5.saveCanvas(filename + ".png");
+  public download() {
+    // TODO: Flood fill the canvas to remove any white spaces
+    if (this.isSetupComplete && this.canvas) {
+      const imageBlob = (this.p5!.get() as unknown as {
+        canvas: HTMLCanvasElement
+      }).canvas.toDataURL();
+      return imageBlob;
     }
+    return "";
   }
 
-  let prevX: number | null = null;
-  let prevY: number | null = null;
-
-  p5.mousePressed = () => {
-    if (!isSetupComplete || !isDrawingEnabled) return;
-    prevX = snap(p5.mouseX);
-    prevY = snap(p5.mouseY);
-    fillSquare(prevX, prevY);
-  };
-
-  p5.mouseDragged = () => {
-    if (!isSetupComplete || !isDrawingEnabled) return;
-    const x = snap(p5.mouseX);
-    const y = snap(p5.mouseY);
-    if (prevX !== null && prevY !== null) {
-      drawLine(prevX, prevY, x, y);
-    }
-    prevX = x;
-    prevY = y;
-  };
-
-  p5.mouseReleased = () => {
-    if (!isDrawingEnabled) return;
-    prevX = null;
-    prevY = null;
-  };
-
-  p5.touchStarted = () => {
-    if (!isDrawingEnabled) return false;
-    p5.mousePressed();
-  };
-
-  p5.touchMoved = () => {
-    if (!isDrawingEnabled) return false;
-    p5.mouseDragged();
-    return false;
-  };
-
-  p5.touchEnded = () => {
-    if (!isDrawingEnabled) return false;
-    p5.mouseReleased();
-  };
-
-  function redrawCanvas() {
-    for (let y = 0; y < numSquaresHeight; y++) {
-      for (let x = 0; x < numSquaresWidth; x++) {
-        if (appearance[y][x].levels[3] !== 0) {
-          canvas.fill(appearance[y][x]);
-          canvas.noStroke();
-          canvas.square(x * squareSize, y * squareSize, squareSize);
+  private redrawCanvas() {
+    for (let y = 0; y < this.numSquaresHeight; y++) {
+      for (let x = 0; x < this.numSquaresWidth; x++) {
+        if (this.appearance[y][x].levels[3] !== 0) {
+          this.canvas.fill(this.appearance[y][x]);
+          this.canvas.noStroke();
+          this.canvas.square(x * this.squareSize, y * this.squareSize, this.squareSize);
         }
       }
     }
   }
 
-  p5.draw = () => {
-    p5.image(canvas, 0, 0);
-    if (!isDrawingEnabled) {
-      p5.fill(0, 0, 0, 100);
-      p5.rect(0, 0, canvasWidth, canvasHeight);
-      p5.fill(255);
-      p5.textAlign(p5.CENTER, p5.CENTER);
-      p5.textSize(32);
-      p5.text("Time's Up!", canvasWidth / 2, canvasHeight / 2);
-    }
-  };
-
-  p5.updateWithProps = (props: SketchProps) => {
-    if (props.isDrawingEnabled !== undefined) {
-      isDrawingEnabled = props.isDrawingEnabled;
-    }
-    if (props.closeCanvas !== undefined) {
-      closeCanvas = props.closeCanvas;
-    }
-  };
-
-  function snap(p: number): number {
-    return Math.floor(p / squareSize);
+  private snap(p: number): number {
+    return Math.floor(p / this.squareSize);
   }
 
-  function drawLine(x0: number, y0: number, x1: number, y1: number) {
+  private drawLine(p5: p5Types, x0: number, y0: number, x1: number, y1: number) {
     const dx = Math.abs(x1 - x0);
     const dy = -Math.abs(y1 - y0);
     const sx = x0 < x1 ? 1 : -1;
@@ -292,7 +283,7 @@ const sketch = (p5: p5Types) => {
     let err = dx + dy;
 
     while (true) {
-      fillSquare(x0, y0);
+      this.fillSquare(p5, x0, y0);
       if (x0 === x1 && y0 === y1) break;
       let e2 = 2 * err;
       if (e2 >= dy) {
@@ -306,31 +297,31 @@ const sketch = (p5: p5Types) => {
     }
   }
 
-  function fillSquare(x: number, y: number) {
+  private fillSquare(p5: p5Types, x: number, y: number) {
     if (
-      !isSetupComplete ||
-      !canvas ||
-      !colorPicker ||
+      !this.isSetupComplete ||
+      !this.canvas ||
+      !this.colorPicker ||
       x < 0 ||
-      x >= numSquaresWidth ||
+      x >= this.numSquaresWidth ||
       y < 0 ||
-      y >= numSquaresHeight
+      y >= this.numSquaresHeight
     ) {
       return;
     }
 
     try {
-      if (eraseMode) {
-        canvas.fill(backgroundColor);
-        appearance[y][x] = p5.color(255, 255, 255, 0);
+      if (this.eraseMode) {
+        this.canvas.fill(this.backgroundColor);
+        this.appearance[y][x] = p5.color(255, 255, 255, 0);
       } else {
-        canvas.fill(colorPicker.color());
-        appearance[y][x] = colorPicker.color();
+        this.canvas.fill(this.colorPicker.color());
+        this.appearance[y][x] = this.colorPicker.color();
       }
-      canvas.noStroke();
-      canvas.square(x * squareSize, y * squareSize, squareSize);
+      this.canvas.noStroke();
+      this.canvas.square(x * this.squareSize, y * this.squareSize, this.squareSize);
     } catch (error) {
       console.error("Error in fillSquare:", error);
     }
   }
-};
+}

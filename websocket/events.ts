@@ -41,6 +41,13 @@ interface StartDrawingEvent extends WebsocketEvent {
   payload: undefined;
 }
 
+interface TimerDrawingEvent extends WebsocketEvent {
+  type: "timer_drawing";
+  payload: {
+    time: number;
+  };
+}
+
 interface FinishDrawingEvent extends WebsocketEvent {
   type: "finish_drawing";
   payload: undefined;
@@ -114,6 +121,7 @@ type AllEvents =
   | RoomUpdateEvent
   | StartGameEvent
   | StartDrawingEvent
+  | TimerDrawingEvent
   | FinishDrawingEvent
   | SubmitDrawingEvent
   | ChooseMovesEvent
@@ -134,6 +142,7 @@ export function send_event<T extends EventTypes>(
   ...args: PayloadMap[T] extends undefined ? [] : [payload: PayloadMap[T]]
 ): void {
   if(socket === undefined) return;
+  console.log("Sent event", type, args[0]);
   socket.emit(type, args[0]);
 }
 
@@ -153,6 +162,7 @@ export async function single_event <T extends EventTypes>(
 ): Promise<PayloadMap[T]> {
   return new Promise((resolve) => {
     if (socket === undefined) return;
+    console.log("Waiting for single event", type);
     // @ts-expect-error: Avoid complaint on callback type.
     socket.once(type, resolve);
   });

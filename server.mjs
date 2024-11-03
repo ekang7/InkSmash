@@ -32,12 +32,6 @@ app.prepare().then(() => {
       res.end(room_code);
       return;
     }
-    if(parsedUrl.pathname === "/api/debug_rooms") {
-      game_manager._debug_print_rooms()
-      res.statusCode = 200;
-      res.end();
-      return;
-    }
     if(parsedUrl.pathname === "/api/verify_code") {
       const code = parsedUrl.query.code;
       if(game_manager.verify_room(code)) {

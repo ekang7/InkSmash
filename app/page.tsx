@@ -49,20 +49,8 @@ export default function Home() {
   //   fetchData();
   // }, []);
 
-  const handleDebug =  () => {
-    fetch("/api/debug_rooms", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
-
-
   return (
     <>
-      <Button onClick={handleDebug} style={{position: "absolute", top: 30, left: 10, margin: 0}}>Debug</Button>
-
     <div className="flex flex-col items-center min-h-screen pt-10 space-y-14 bg-[#FEFEC8]">
     <img src="/InkSmash1.png" alt="InkSmash Logo" className="w-80"/>
 
