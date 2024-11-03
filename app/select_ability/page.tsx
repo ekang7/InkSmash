@@ -11,6 +11,7 @@ export default function SelectAbility() {
   const searchParams = useSearchParams();
   const [moves, setMoves] = useState<Move[]>([]);
   const [newMove, setNewMove] = useState<Move>({ name: "", description: "", img: ""});
+  const [roundNumber, setRoundNumber] = useState(0);
 
   useEffect(() => {
     const fetchMoves = async () => {

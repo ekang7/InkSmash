@@ -15,7 +15,7 @@ export default function DrawingAbility() {
   const [showRound, setShowRound] = useState(true);
 
   // TODO: STATE FOR ROUND NUMBER
-  const [roundNumber, setRoundNumber] = useState(2);
+  const [roundNumber, setRoundNumber] = useState(0);
 
   const [timeRemaining, setTimeRemaining] = useState(20);
 
@@ -37,7 +37,14 @@ export default function DrawingAbility() {
 
     const roomCode = searchParams.get("room") ?? "ABCDEF";
     const playerNum = searchParams.get("player") ?? "1";
+    setShowRound(roundNumber + 1);
+    if (roundNumber > 1){
     router.push(`/select_ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+    }
+    else 
+    {
+      router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+    }
   }
 
   return (
