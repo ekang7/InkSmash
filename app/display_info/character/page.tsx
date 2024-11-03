@@ -12,12 +12,14 @@ import { FaPencil } from "react-icons/fa6";
 
 export default function DisplayCharacter() {
   const [info, setInfo] = useState<Character | null>(null);
+  const [disabled, setDisabled] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const continueRound = async () => {
     send_event(socket, "continue_round");
+    setDisabled(true);
     await single_event(socket, "start_drawing");
 
     const name = searchParams.get("name") ?? "Player";
@@ -42,8 +44,11 @@ export default function DisplayCharacter() {
         <TypographyP className="text-2xl font-bold text-black">Generating character...</TypographyP>
       ) : <>
         <button
+          disabled={disabled}
           onClick={continueRound}
-          className={"flex w-80 transform items-center justify-center rounded-xl py-4 text-2xl font-bold text-white shadow-lg transition-transform hover:scale-105 bg-green-500 hover:bg-green-600"}
+          className={`flex w-80 transform items-center justify-center rounded-xl py-4 text-2xl font-bold text-white shadow-lg transition-transform ${
+            disabled ? "cursor-not-allowed bg-gray-400" : "bg-green-500 hover:bg-green-600 hover:scale-105"
+          }`}
         >
           <FaPencil className="mr-4 text-2xl" />
           Draw First Ability

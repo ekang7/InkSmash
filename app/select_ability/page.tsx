@@ -27,7 +27,8 @@ export default function SelectAbility() {
     const name = searchParams.get("name") ?? "Player";
     const roomCode = searchParams.get("room") ?? "ABCDEF";
     const playerNum = searchParams.get("player") ?? "1";
-    router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+    const round = searchParams.get("round") ?? "0";
+    router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}&round=${round}`);
   }
 
   return (

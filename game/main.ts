@@ -127,8 +127,10 @@ export class GameManager {
     send_event(room.player_2!.ws, "finish_drawing");
 
     // Store saved drawings from both players
-    const player_1_img = (await single_event(room.player_1!.ws, "submit_drawing")).blob;
-    const player_2_img = (await single_event(room.player_2!.ws, "submit_drawing")).blob;
+    const [player_1_img, player_2_img] = await Promise.all([
+      single_event(room.player_1!.ws, "submit_drawing"),
+      single_event(room.player_2!.ws, "submit_drawing")
+    ]);
 
     // Generate names, stats, and descriptions for each character
     const generate_char_info = async (img: string): Promise<Character> => {
@@ -141,18 +143,18 @@ export class GameManager {
       if(gpt.status !== 200) {
         console.error("Failed to generate character for player");
         console.error(gpt);
-        return {name: "??", description: "??", hp: 100, def: 10, str: 10, img: img, moveset: []};
+        return {name: "??", description: "??", max_hp: 100, hp: 100, def: 10, str: 10, img: img, moveset: []};
       }
 
       const m = JSON.parse(gpt.message);
-      return { name: m.name, description: m.description, hp: m.hp, def: m.def, str: m.str, img: img, moveset: []};
+      return { name: m.name, description: m.description, max_hp: m.hp, hp: m.hp, def: m.def, str: m.str, img: img, moveset: []};
     }
 
     const show_character_info = async (player_num: number) => {
       const player = player_num === 1 ? room.player_1! : room.player_2!;
       const img = player_num === 1 ? player_1_img : player_2_img;
 
-      player.Character = await generate_char_info(img);
+      player.Character = await generate_char_info(img.blob);
       send_event(player.ws, "character_info", {info: player.Character, player_num});
     }
 
@@ -160,8 +162,10 @@ export class GameManager {
     await Promise.all([show_character_info(1), show_character_info(2)]);
 
     // Wait until both clients have seen the character info
-    await single_event(room.player_1!.ws, "continue_round");
-    await single_event(room.player_2!.ws, "continue_round");
+    await Promise.all([
+      single_event(room.player_1!.ws, "continue_round"),
+      single_event(room.player_2!.ws, "continue_round")
+    ]);
 
     this.start_ability_drawing(room_code);
   }
@@ -186,10 +190,12 @@ export class GameManager {
     send_event(room.player_2!.ws, "finish_drawing");
 
     // Store saved drawings from both players
-    const player_1_move = (await single_event(room.player_1!.ws, "submit_drawing")).blob;
-    const player_2_move = (await single_event(room.player_2!.ws, "submit_drawing")).blob;
+    const [player_1_move, player_2_move] = await Promise.all([
+      single_event(room.player_1!.ws, "submit_drawing"),
+      single_event(room.player_2!.ws, "submit_drawing")
+    ]);
 
-    this.start_ability_selection(room_code, player_1_move, player_2_move);
+    this.start_ability_selection(room_code, player_1_move.blob, player_2_move.blob);
   }
 
   private async start_ability_selection(room_code: string, player_1_move_img: string, player_2_move_img: string) {
@@ -277,11 +283,12 @@ export class GameManager {
 
   private async start_fight(room_code: string) {
     const room = this.rooms.get(room_code)!;
-    room.state = "fighting";
 
     // Wait for both players to select their moves
-    const player_1_move = (await single_event(room.player_1!.ws, "use_move")).move_idx;
-    const player_2_move = (await single_event(room.player_2!.ws, "use_move")).move_idx;
+    const [player_1_move, player_2_move] = await Promise.all([
+      single_event(room.player_1!.ws, "use_move"),
+      single_event(room.player_2!.ws, "use_move")
+    ]);
 
     // Query AI to determine outcome
     const gpt = await callOpenAi({
@@ -291,8 +298,8 @@ export class GameManager {
       imageBlobs: [
         room.player_1!.Character!.img,
         room.player_2!.Character!.img,
-        room.player_1!.Character!.moveset[player_1_move]!.img,
-        room.player_2!.Character!.moveset[player_2_move]!.img,
+        room.player_1!.Character!.moveset[player_1_move.move_idx]!.img,
+        room.player_2!.Character!.moveset[player_2_move.move_idx]!.img,
       ]
     });
 
@@ -300,8 +307,8 @@ export class GameManager {
     let player_1_dmg = 0;
     let player_2_dmg = 0;
     let description =
-      `${room.player_1!.name} used ${room.player_1!.Character!.moveset[player_1_move]!.name} and dealt ${player_1_dmg} damage.\n
-        ${room.player_2!.name} used ${room.player_2!.Character!.moveset[player_2_move]!.name} and dealt ${player_2_dmg} damage.`;
+      `${room.player_1!.name} used ${room.player_1!.Character!.moveset[player_1_move.move_idx]!.name} and dealt ${player_1_dmg} damage.\n
+        ${room.player_2!.name} used ${room.player_2!.Character!.moveset[player_2_move.move_idx]!.name} and dealt ${player_2_dmg} damage.`;
 
     if(gpt.status === 200) {
       const message = JSON.parse(gpt.message);
@@ -315,8 +322,8 @@ export class GameManager {
 
     // Send outcome to players
     send_event(room.player_1!.ws, "attack", {
-      player_1_move: player_1_move,
-      player_2_move: player_2_move,
+      player_1_move: player_1_move.move_idx,
+      player_2_move: player_2_move.move_idx,
       outcome: {
         player_1_new_health: room.player_1!.Character!.hp,
         player_2_new_health: room.player_2!.Character!.hp,
@@ -334,8 +341,10 @@ export class GameManager {
     });
 
     // Wait until both clients have seen the outcome
-    await single_event(room.player_1!.ws, "continue_round");
-    await single_event(room.player_2!.ws, "continue_round");
+    await Promise.all([
+      single_event(room.player_1!.ws, "continue_round"),
+      single_event(room.player_2!.ws, "continue_round")
+    ]);
 
     // Check if the game is over
     const hp1 = room.player_1!.Character!.hp;

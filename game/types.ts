@@ -10,6 +10,7 @@ export interface Character {
   img: string
   name: string
   description: string
+  max_hp: number
   hp: number
   def: number
   str: number

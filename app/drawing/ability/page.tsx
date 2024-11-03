@@ -12,11 +12,12 @@ export default function DrawingAbility() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get("name") ?? "Player";
+  const round = searchParams.get("round") ?? "0";
   const [showRound, setShowRound] = useState(true);
 
   const [roundNumber, setRoundNumber] = useState(0);
   useEffect(() => {
-    const a = parseInt(localStorage.getItem("round_number") ?? "0", 10);
+    const a = parseInt(round, 10);
     setRoundNumber(a + 1);
     localStorage.setItem("round_number", (a + 1).toString());
   }, []);
@@ -43,9 +44,9 @@ export default function DrawingAbility() {
     const playerNum = searchParams.get("player") ?? "1";
     // Skip ability select for first two rounds.
     if (roundNumber <= 2){
-      router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+      router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}&round=${roundNumber}`);
     } else {
-      router.push(`/select_ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+      router.push(`/select_ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}&round=${roundNumber}`);
     }
   }
 
