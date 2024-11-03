@@ -46,11 +46,11 @@ export default function DisplayCharacter() {
         <button
           disabled={disabled}
           onClick={continueRound}
-          className={`flex w-80 transform items-center justify-center rounded-xl py-4 text-2xl font-bold text-white shadow-lg transition-transform ${
+          className={`flex w-80 transform items-center justify-center rounded-xl py-2 text-2xl font-bold text-white shadow-lg transition-transform ${
             disabled ? "cursor-not-allowed bg-gray-400" : "bg-green-500 hover:bg-green-600 hover:scale-105"
           }`}
         >
-          <FaPencil className="mr-4 text-2xl" />
+          <FaPencil className="mr-4 text-1xl" />
           Draw First Ability
         </button>
 
@@ -66,18 +66,25 @@ export default function DisplayCharacter() {
             overflow: "hidden",
             marginLeft: "10px",
             marginRight: "10px",
+            color: "black",
           }}
         >
           <CardHeader className="mb-2 flex flex-col items-center">
-            <CardTitle>Opponent: {info.name}</CardTitle>
+            <CardTitle>Character: {info.name}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Image src={info.img} alt={info.name} width={250} height={200} />
-            <TypographyP className="text-left">{info.description}</TypographyP>
-            <TypographyP className="text-left">{info.hp}</TypographyP>
-            <TypographyP className="text-left">{info.def}</TypographyP>
-            <TypographyP className="text-left">{info.str}</TypographyP>
+          <CardContent className="flex">
+            <div className="w-1/2 flex justify-center items-center">
+              <Image src={info.img} alt={info.name} width={250} height={200} />
+            </div>
+            <div className="w-1/2 flex flex-col justify-between border-l-2 border-black p-8">
+              <div className="space-y-2 height-full">
+                <TypographyP className="border-b-2 border-black pb-2">HP: {info.hp}</TypographyP>
+                <TypographyP className="border-b-2 border-black pb-2">DEF: {info.def}</TypographyP>
+                <TypographyP className="border-b-2 border-black pb-2">STR: {info.str}</TypographyP>
+              </div>
+            </div>
           </CardContent>
+          <TypographyP className="text-left mt-2">{info.description}</TypographyP>
         </Card>
       </>}
     </div>
