@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { env } from "@/env.mjs";
 import { OpenAI } from "openai";
 import fs from "fs";
 import path from "path";
@@ -23,7 +22,7 @@ export async function callOpenAi({
 }) {
   try {
     const openai = new OpenAI({
-      apiKey: env.OPENAI_API_KEY,
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
     // Encode the images to Base64
@@ -54,6 +53,7 @@ export async function callOpenAi({
     const completion = await openai.chat.completions.create({
       messages: [
         { role: "system", content: system_prompt },
+        // @ts-expect-error: ignore typing error
         { role: "user", content: request_message },
       ],
       model: model,
@@ -70,7 +70,6 @@ export async function callOpenAi({
     }
 
     const cleaned = completion.choices[0].message.content.replace(/^```json\s*|\s*```$/g, '');
-    // console.log(cleaned)
 
     return { message: cleaned, error: null, status: 200 };
   } catch (error: unknown) {

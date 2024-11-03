@@ -8,7 +8,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:compile": "concurrently \"tsc -p tsconfig.server.json -w\" \"tsc-alias -p tsconfig.server.json -w\"",
+    "dev:copyfiles": "copyfiles .env dist",
+    "dev:compile": "npm run dev:copyfiles && concurrently \"tsc -p tsconfig.server.json -w\" \"tsc-alias -p tsconfig.server.json -w\"",
     "dev:server": "nodemon",
     "dev": "concurrently \"npm run dev:compile\" \"npm run dev:server\"",
     "build:server": "tsc --project tsconfig.server.json",
@@ -79,6 +80,7 @@
     "@typescript-eslint/parser": "^7.13.1",
     "autoprefixer": "^10.4.19",
     "concurrently": "^9.0.1",
+    "copyfiles": "^2.4.1",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.4.2",
     "eslint": "^8.56.0",

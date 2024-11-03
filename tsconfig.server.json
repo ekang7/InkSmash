@@ -10,6 +10,7 @@
   "include": [
     "game/**/*.ts",
     "websocket/**/*.ts",
+    "oai_api/**/*.ts",
   ],
   "tsc-alias": {
     "resolveFullExtension": ".js",

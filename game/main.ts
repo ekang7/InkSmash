@@ -1,10 +1,10 @@
 import { Character, GameState, Move, PlayerState } from "./types.js";
 import { Socket } from "socket.io";
 import { on_event, send_event, single_event } from "@/websocket/events";
-import { callOpenAi } from "@/openai/openai";
-import * as ability_prompts from "@/openai/ability_prompts";
-import * as fight_prompts from "@/openai/fight_prompts";
-import * as character_prompts from "@/openai/character_prompts";
+import { callOpenAi } from "@/oai_api/openai";
+import * as ability_prompts from "@/oai_api/ability_prompts";
+import * as fight_prompts from "@/oai_api/fight_prompts";
+import * as character_prompts from "@/oai_api/character_prompts";
 
 export class GameManager {
   rooms: Map<string, GameState>
@@ -147,7 +147,6 @@ export class GameManager {
       }
 
       const m = JSON.parse(gpt.message);
-      // @ts-expect-error: Avoid typing message
       return { name: m.name, description: m.description, hp: m.hp, def: m.def, str: m.str, img: img, moveset: []};
     }
 
@@ -203,7 +202,6 @@ export class GameManager {
       }
 
       const message = JSON.parse(gpt.message);
-      // @ts-expect-error: Avoid typing message
       return { name: message.name, description: message.description, img: img};
     }
 
@@ -275,11 +273,8 @@ export class GameManager {
 
     if(gpt.errorCode === 200) {
       const message = JSON.parse(gpt.message);
-      // @ts-expect-error: Avoid typing message
       player_1_dmg = message.player_1_dmg;
-      // @ts-expect-error: Avoid typing message
       player_2_dmg = message.player_2_dmg;
-      // @ts-expect-error: Avoid typing message
       description += '\n' + message.description;
     }
 
