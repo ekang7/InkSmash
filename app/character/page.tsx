@@ -21,11 +21,10 @@ export default function Character() {
      
       <div className="z-0">
           <h1 className="text-4xl font-bold text-black">Welcome, {name}!</h1>
-          <p className="text-xl">Get ready to start your adventure.</p>
+          <p className="text-xl">THIS IS EDWARDS PAGE.</p>
       </div>
     </div>
-    <div className="z-40 absolute top-0 h-10" >
-        
+    <div className="z-40 absolute top-40 h-10" >
         {showRound && <Round roundNumber={1} onHide={handleHideRound} />}
     </div>
     </>

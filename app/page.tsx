@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import Canvas from "@/components/ui/canvas";
 import { socket } from "@/socket";
 import { on_event } from "@/websocket/events";
-import { useState } from "react";
 import { useEffect, useState } from 'react';
 import "./globals.css";
 import { useRouter } from 'next/navigation';
