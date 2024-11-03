@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Character, Move } from "@/game/types";
+import { AttackOutcome, Character, Move } from "@/game/types";
 
 interface WebsocketEvent {
   type: string;
@@ -47,7 +47,7 @@ interface FinishDrawingEvent extends WebsocketEvent {
 }
 
 interface SubmitDrawingEvent extends WebsocketEvent {
-  type: "submit_game";
+  type: "submit_drawing";
   payload: {
     blob: string;
   };
@@ -86,9 +86,9 @@ interface UseMoveEvent extends WebsocketEvent {
 interface AttackEvent extends WebsocketEvent {
   type: "attack";
   payload: {
-    player_1_move: string;
-    player_2_move: string;
-    outcome: string;
+    player_1_move: number;
+    player_2_move: number;
+    outcome: AttackOutcome;
   };
 }
 
