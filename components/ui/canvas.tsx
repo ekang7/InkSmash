@@ -103,7 +103,7 @@ export default Canvas;
 const sketch = (p5: p5Types) => {
   let squareSize: number;
   const numSquaresWidth = 80;
-  const numSquaresHeight = Math.floor(1.8 * numSquaresWidth);
+  const numSquaresHeight = Math.floor(1.5 * numSquaresWidth);
   let canvasWidth: number;
   let canvasHeight: number;
   let appearance: p5Types.Color[][] = [];
