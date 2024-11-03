@@ -143,7 +143,7 @@ export class GameManager {
         json_response: character_prompts.JSON_FORMAT,
         imageBlobs: [img]
       });
-      if(gpt.errorCode !== 200) {
+      if(gpt.status !== 200) {
         console.error("Failed to generate character for player");
         console.error(gpt);
         return {name: "??", description: "??", hp: 100, def: 10, str: 10, img: img, moveset: []};
@@ -206,7 +206,7 @@ export class GameManager {
         json_response: ability_prompts.JSON_FORMAT,
         imageBlobs: [img]
       });
-      if(gpt.errorCode !== 200) {
+      if(gpt.status !== 200) {
         console.error("Failed to generate move for player 1");
         return {name: "??", description: "??", img: img};
       }
@@ -281,7 +281,7 @@ export class GameManager {
       `${room.player_1!.name} used ${room.player_1!.Character!.moveset[player_1_move]!.name} and dealt ${player_1_dmg} damage.\n
         ${room.player_2!.name} used ${room.player_2!.Character!.moveset[player_2_move]!.name} and dealt ${player_2_dmg} damage.`;
 
-    if(gpt.errorCode === 200) {
+    if(gpt.status === 200) {
       const message = JSON.parse(gpt.message);
       player_1_dmg = message.player_1_dmg;
       player_2_dmg = message.player_2_dmg;
