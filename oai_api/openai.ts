@@ -32,7 +32,7 @@ export async function callOpenAi({
       imageBlobs.push("data:image/png;base64," + base64Image);
     });
 
-    const request_message: { type: string; text?: string; image_url?: { url: string } }[] = [
+    const request_message: { type: string; text?: string; image_url?: { url: string, name: string } }[] = [
       {
         type: "text",
         text: `${message_prompt}. Respond in JSON format as follows: ${json_response}`,
@@ -40,11 +40,12 @@ export async function callOpenAi({
     ];
 
     // Add the images to the message if provided
-    imageBlobs.forEach((base64Image) => {
+    imageBlobs.forEach((base64Image, index) => {
       request_message.push({
         type: "image_url",
         image_url: {
           url: base64Image,
+          name: `image_${index + 1}.png`,
         },
       });
     });
