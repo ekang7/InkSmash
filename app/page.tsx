@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Canvas from "@/components/ui/canvas";
-import { socket } from "@/socket";
-import { on_event } from "@/websocket/events";
-import { useEffect, useState } from 'react';
+import { useState } from "react";
 import "./globals.css";
 import { useRouter } from 'next/navigation';
 
@@ -17,8 +14,12 @@ export default function Home() {
   const router = useRouter();
 
   const handlePlayClick = () => {
-    router.push('/room');
+    router.push('/create_room');
   };
+
+  const handleJoinClick = () => {
+    router.push('/join_room');
+  }
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -48,18 +49,20 @@ export default function Home() {
   //   fetchData();
   // }, []);
 
-  const handleClick = () => {
-    socket.auth.room = "test";
-    socket.connect();
-
-    console.log("a");
-    on_event(socket, "start_game", () => {
-      console.log("Game started");
+  const handleDebug =  () => {
+    fetch("/api/debug_rooms", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
-  };
+  }
+
 
   return (
     <>
+      <Button onClick={handleDebug} style={{position: "absolute", top: 30, left: 10, margin: 0}}>Debug</Button>
+
     <div className="flex flex-col items-center min-h-screen pt-10 space-y-14 bg-[#FEFEC8]">
     <img src="/InkSmash1.png" alt="InkSmash Logo" className="w-80"/>
 
@@ -83,7 +86,7 @@ export default function Home() {
         </div>
       </button>
 
-      <button className="flex items-center justify-center w-80 py-6 bg-blue-600 rounded-xl text-white text-2xl font-bold shadow-lg transform transition-transform hover:scale-105">
+      <button onClick={handleJoinClick} className="flex items-center justify-center w-80 py-6 bg-blue-600 rounded-xl text-white text-2xl font-bold shadow-lg transform transition-transform hover:scale-105">
         <FaLink className="mr-4 text-4xl" />
         <div>
           Join a Room

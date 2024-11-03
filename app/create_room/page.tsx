@@ -1,16 +1,29 @@
-"use client"; 
+"use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaLink, FaPlay } from "react-icons/fa";
+import { FaPlay } from "react-icons/fa";
 
 export default function Room() {
   const [name, setName] = useState("");
   const router = useRouter();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (name) {
-        router.push(`/waiting?name=${encodeURIComponent(name)}`);
-    //   router.push(`/character?name=${encodeURIComponent(name)}`);
+      const res = await fetch('/api/create_room', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        alert("An error happened while creating the room, please try again.");
+        return;
+      }
+
+      const room_code = await res.text();
+
+      router.push(`/waiting?name=${encodeURIComponent(name)}&room=${room_code}`);
     } else {
       alert("Please enter a character name.");
     }
@@ -23,7 +36,7 @@ export default function Room() {
       {/* Input Field */}
       <input
         type="text"
-        onChange={(e) => setName(e.target.value)} 
+        onChange={(e) => setName(e.target.value)}
         placeholder="Name"
         className="w-80 py-4 px-6 text-blue text-lg rounded-xl shadow-lg placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
       />

@@ -1,5 +1,14 @@
 # Websocket Events
 
+`set_player_num(player_num)`
+- Server -> client.
+- Sent when a player first connects to the server, assigns player number.
+
+`room_update(player_1_name, player_2_name)`
+- Server -> client.
+- Sent when a player joins a room, or when a player leaves.
+- Name can be null, indicating an empty slot.
+
 `start_game`
 - Client -> server.
 - Starts game flow on server.
@@ -18,26 +27,23 @@
 - Canvas gets exported to PNG -> sent as blob.
 - Server receives blob -> does ✨AI Magic!✨
 
-`character_info(self, opp)`
+`character_info(player_1, player_2)`
 - Server -> client.
 - After AI Magic, server sends back character info.
-  - Self: Player's character info.
-  - Opp: Opponent's character info.
 - Character info:
   - Blob: Image of character.
   - Moveset: List of moves
-    - ID 
     - Name
     - Description (damage, accuracy, mana, etc.)
     - Associated animation gif
 - Once client receives, transition into battle screen.
 
-`select_move(move_id)`
+`select_move(move_idx)`
 - Client -> server.
 - Sends client's move selection to the server.
 - Server waits to receive both moves before calculating outcome.
 
-`attack(move_id_1, move_id_2)`
+`attack(player_1_move, player_2_move)`
 - Server -> client.
 - Sends both clients the chosen moves.
 

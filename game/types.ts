@@ -1,7 +1,6 @@
 import { Socket } from "socket.io";
 
 export interface Move {
-  id: string
   name: string
   description: string
   animation: string
@@ -10,16 +9,19 @@ export interface Move {
 export interface Character {
   blob: string
   moveset: Move[]
+  hp: number
 }
 
 export interface PlayerState {
-  Character: Character,
-  hp: number,
-  selected_move_id: string,
-  ws: Socket
+  ws: Socket,
+  name: string,
+  Character: Character | null,
+  selected_move_idx: number,
 }
 
 export interface GameState {
-  player_1: PlayerState,
-  player_2: PlayerState,
+  player_1: PlayerState | null,
+  player_2: PlayerState | null,
+  state: "waiting" | "drawing" | "fighting" | "end",
+  round: number
 }
