@@ -2,12 +2,14 @@
 
 import { FaSquare, FaCircle } from "react-icons/fa"; 
 import { FaDiamond } from "react-icons/fa6";
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 
 export default function GameButtons() {
   const [moves, setMoves] = useState([]);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,6 +40,10 @@ export default function GameButtons() {
     fetchData();
   }, []);
 
+  const handleAttackClick = (move) => {
+    router.push(`/attack?move=${encodeURIComponent(move.move)}&damage=${move.damage}`);
+  };
+
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#FEFEC8] space-y-8 pt-16">
         <iframe src="https://giphy.com/embed/12r4pHjvAOv48o" width="480" height="274" className="giphy-embed" allowFullScreen></iframe><p></p>
@@ -46,6 +52,7 @@ export default function GameButtons() {
       {moves.map((moveItem, index) => (
         <button
           key={index}
+          onClick={() => handleAttackClick(moveItem)}
           className="flex items-center justify-start w-80 py-6 px-4 bg-blue-600 rounded-xl text-white text-2xl font-bold shadow-lg transform transition-transform hover:scale-105"
         >
           {/* Choose icon based on the index */}
