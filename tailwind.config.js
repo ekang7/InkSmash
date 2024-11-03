@@ -4,6 +4,7 @@ module.exports = {
     "./public/index.html",
     "./app/room/*.tsx",
     "./app/character/*.tsx",
+    "./app/waiting/*.tsx",
     "./app/score/*.tsx"],
     theme: {
       extend: {},
