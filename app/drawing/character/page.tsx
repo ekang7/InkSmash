@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Round from '@/components/ui/round';
 import Canvas from '@/components/ui/canvas';
 import { TypographyH1 } from '@/components/ui/typography';
@@ -14,7 +14,7 @@ export default function Drawing() {
   // NEEDS TO ACTUALLY BE IMPLEMENTED
   const [roundNumber, setRoundNumber] = useState(1);
   const [customText, setCustomText] = useState("Draw your character!");
-  const [nextPage, setNextPage] = useState("/score");
+  const [nextPage, setNextPage] = useState("/character/ability");
 
   useEffect(() => {
     if (roundNumber === 1) {
@@ -41,7 +41,7 @@ export default function Drawing() {
             <Round roundNumber={roundNumber} onHide={handleHideRound} customText={customText} />
           </div>
         )}
-        <div className="relative mt-1">
+        <div className="relative mt-8">
           <Canvas initialTime={100} next_page="/score" />
         </div>
       </div>
@@ -61,9 +61,8 @@ export function Ability() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FEFEC8]">
-    <div className="flex flex-col items-center justify-center space-y-8">
-      <div className="text-center mt-">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FEFEC8] space-y-8">
+      <div className="text-center mt-0">
         <TypographyH1 className="text-4xl font-bold text-black">Get drawing, {name}!</TypographyH1>
         {showRound && (
           <div className="fixed inset-0 flex items-center justify-center">
@@ -71,10 +70,9 @@ export function Ability() {
           </div>
         )}
         <div className="relative mt-8">
-          <Canvas initialTime={100} next_page="/score" />
+          <Canvas initialTime={100} next_page="/character/ability" />
         </div>
       </div>
-    </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ export async function POST(req: Request) {
   const agenda_response_json = await callOpenAi({
     system_prompt: "you are an expert pokemon rater",
     message_prompt: data.test,
+    json_response: '{"moves": [{"move": "move name", "damage": 0}, {"move": "move name", "damage": 0}, {"move": "move name", "damage": 0}]}',
     imagePaths: ["./app/images/test.png"]
   });
 
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
         agenda: agenda_response_json.error,
       },
       status: 500
+      //TODO: remove this for security reasons so LLM calls can't get spammed
     }, { headers: { 'Access-Control-Allow-Origin': '*' } });
   }
 
@@ -24,5 +26,6 @@ export async function POST(req: Request) {
     message: { agenda: JSON.parse(agenda_response_json.message) },
     error: null,
     status: 200
+    //TODO: remove this for security reasons so LLM calls can't get spammed
   }, { headers: { 'Access-Control-Allow-Origin': '*' } });
 }

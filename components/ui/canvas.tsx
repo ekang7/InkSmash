@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation';
 
 interface CanvasProps {
   initialTime: number;
+  next_page: string;
 }
 
-const Canvas: React.FC<CanvasProps> = ({ initialTime }) => {
+const Canvas: React.FC<CanvasProps> = ({ initialTime, next_page }) => {
   const router = useRouter(); // For navigation
   const [timeRemaining, setTimeRemaining] = useState<number>(initialTime);
   const [showCanvas, setShowCanvas] = useState<boolean>(true);
@@ -30,10 +31,10 @@ const Canvas: React.FC<CanvasProps> = ({ initialTime }) => {
       }, 1000);
     } else {
       // Redirect to "/score" after time runs out
-      router.push("/score");
+      router.push(next_page);
     }
     return () => clearInterval(timerId);
-  }, [timeRemaining, router]);
+  }, [timeRemaining, router, next_page]);
 
   const closeCanvas = () => {
     setShowCanvas(false);
@@ -50,6 +51,7 @@ const Canvas: React.FC<CanvasProps> = ({ initialTime }) => {
               backgroundColor: "#e0e0e0",
               borderRadius: "15px",
               overflow: "hidden",
+              marginBottom: "20px",
             }}
           >
             <div
@@ -173,13 +175,6 @@ const sketch = (p5: p5Types) => {
     squareSize = canvasWidth / numSquaresWidth;
   }
 
-  p5.windowResized = () => {
-    updateCanvasSize();
-    p5.resizeCanvas(canvasWidth, canvasHeight);
-    canvas.resizeCanvas(canvasWidth, canvasHeight);
-    createGrid();
-    redrawCanvas();
-  };
 
   function createGrid() {
     canvas.background(backgroundColor);
@@ -189,18 +184,18 @@ const sketch = (p5: p5Types) => {
 
   function switchDrawMode() {
     eraseMode = !eraseMode;
-    let buttonText = eraseMode ? "Draw" : "Erase";
+    const buttonText = eraseMode ? "Draw" : "Erase";
     eraseButton.html(buttonText);
   }
 
   function clean() {
-    createGrid();
-    let transparentColor = p5.color(255, 255, 255, 0);
+    const transparentColor = p5.color(255, 255, 255, 0);
     for (let j = 0; j < numSquaresHeight; j++) {
       for (let i = 0; i < numSquaresWidth; i++) {
         appearance[j][i] = transparentColor;
       }
     }
+    createGrid();
   }
 
   function download(filename = "myCharacter") {
