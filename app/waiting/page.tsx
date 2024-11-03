@@ -58,7 +58,7 @@ export default function Room() {
     (async () => {
       const playerNum = (await single_event(socket, "set_player_num")).player_num;
       await single_event(socket, "start_drawing");
-      router.push(`/drawing?name=${encodeURIComponent(name)}&room=${room_code}&player=${playerNum}`);
+      router.push(`/drawing/character?name=${encodeURIComponent(name)}&room=${room_code}&player=${playerNum}`);
     })();
   }, [])
 
