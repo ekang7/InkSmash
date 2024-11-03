@@ -46,7 +46,7 @@ export async function callOpenAi({
       });
     }
 
-    console.log(request_message)
+    // console.log(request_message)
 
     // Send request to OpenAI with text and image
     const completion = await openai.chat.completions.create({
@@ -64,7 +64,7 @@ export async function callOpenAi({
     }
 
     const cleaned = completion.choices[0].message.content.replace(/^```json\s*|\s*```$/g, '');
-    console.log(cleaned)
+    // console.log(cleaned)
 
     return { message: cleaned, error: null, status: 200 };
   } catch (error: unknown) {

@@ -16,8 +16,8 @@ export default function Round({ roundNumber = 1, onHide }) {
   }, [onHide]);
 
   return (
-    <div className=" z-40 flex items-center justify-center bg-black bg-opacity-50 z-50 animate-fadeInOut">
-      <div className="z-40 text-6xl font-bold text-black bg-[#2E2E2E] px-8 py-4 rounded-lg shadow-2xl transform scale-105 animate-float z-60">
+    <div className=" z-40 flex items-center justify-center bg-black  z-50 animate-fadeInOut">
+      <div className="z-40 text-6xl font-bold text-black bg-[#2E2E2E] bg-blue    px-8 py-4 rounded-lg shadow-2xl transform scale-105 animate-float z-60">
         Round {roundNumber}
       </div>
     </div>

@@ -6,7 +6,7 @@ import { FaLink, FaPlay } from "react-icons/fa";
 export default function Room() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const name = searchParams.get("name") || "Grace"; // Default to "Grace" for demonstration
+  const name = searchParams.get("name") || "Player"; // Default to "Grace" for demonstration
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [players, setPlayers] = useState([name]); // Track players in the room
@@ -22,7 +22,7 @@ export default function Room() {
 
   const handleStart = () => {
     if (isPlayEnabled) {
-      router.push('/drawing'); // Redirect to "/room" on click if enabled
+      router.push(`/drawing?name=${encodeURIComponent(name)}`); // Redirect to "/room" on click if enabled
     }
   };
 

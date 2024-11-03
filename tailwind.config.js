@@ -3,7 +3,7 @@ module.exports = {
     content: ["./app/*.{js,jsx,ts,tsx}", 
     "./public/index.html",
     "./app/room/*.tsx",
-    "./app/character/*.tsx",
+    "./app/drawing/*.tsx",
     "./app/waiting/*.tsx",
     "./app/score/*.tsx"],
     theme: {
