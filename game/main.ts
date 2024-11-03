@@ -44,16 +44,11 @@ export class GameManager {
 
     // Add event listener for start_game
     on_event(socket, "start_game", () => {
-      if(room.state === "waiting") {
-        this.start_character_drawing(room_code);
-      } else {
-        console.log(`Received start_game event while in state ${room.state}`);
-      }
+      this.start_character_drawing(room_code);
     });
 
     // Add event listener for disconnect
     on_event(socket, "disconnect", () => {
-      room.state = "waiting";
       if(room.player_1?.ws === socket) room.player_1 = null;
       if(room.player_2?.ws === socket) room.player_2 = null;
 
@@ -95,7 +90,7 @@ export class GameManager {
     this.rooms.set(room_code, {
       player_1: null,
       player_2: null,
-      state: "waiting",
+      round: 0,
     });
 
     return room_code;
@@ -115,7 +110,7 @@ export class GameManager {
 
   private async start_character_drawing(room_code: string) {
     const room = this.rooms.get(room_code)!;
-    room.state = "drawing";
+    room.round = 0;
     send_event(room.player_1!.ws, "start_drawing");
     send_event(room.player_2!.ws, "start_drawing");
 
@@ -173,6 +168,7 @@ export class GameManager {
 
   private async start_ability_drawing(room_code: string) {
     const room = this.rooms.get(room_code)!;
+    room.round += 1;
     send_event(room.player_1!.ws, "start_drawing");
     send_event(room.player_2!.ws, "start_drawing");
 
@@ -217,6 +213,32 @@ export class GameManager {
 
     const player_1_move = await generate_ability_info(player_1_move_img);
     const player_2_move = await generate_ability_info(player_2_move_img);
+
+    // Check if players already have moves
+    if(room.round <= 2) {
+      room.player_1!.Character!.moveset.push(player_1_move);
+      send_event(room.player_1!.ws, "character_info", {
+        info: room.player_1!.Character!,
+        player_num: 1
+      });
+      send_event(room.player_2!.ws, "character_info", {
+        info: room.player_1!.Character!,
+        player_num: 1
+      });
+
+      room.player_2!.Character!.moveset.push(player_2_move);
+      send_event(room.player_1!.ws, "character_info", {
+        info: room.player_2!.Character!,
+        player_num: 2
+      });
+      send_event(room.player_2!.ws, "character_info", {
+        info: room.player_2!.Character!,
+        player_num: 2
+      });
+
+      this.start_fight(room_code);
+      return;
+    }
 
     // Send move options to players
     send_event(room.player_1!.ws, "choose_moves", {

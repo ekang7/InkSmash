@@ -8,7 +8,6 @@ import { send_event, single_event } from "@/websocket/events";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaPlay } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
 
 export default function DisplayCharacter() {

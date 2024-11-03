@@ -16,6 +16,10 @@ export default function Drawing() {
 
   const [timeRemaining, setTimeRemaining] = useState(30);
 
+  useEffect(() => {
+    localStorage.setItem("round_number", "0");
+  }, []);
+
   // Hide overlay after a delay
   const handleHideRound = () => {
     setShowRound(false);

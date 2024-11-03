@@ -11,7 +11,6 @@ export default function SelectAbility() {
   const searchParams = useSearchParams();
   const [moves, setMoves] = useState<Move[]>([]);
   const [newMove, setNewMove] = useState<Move>({ name: "", description: "", img: ""});
-  const [roundNumber, setRoundNumber] = useState(0);
 
   useEffect(() => {
     const fetchMoves = async () => {
@@ -28,7 +27,7 @@ export default function SelectAbility() {
     const name = searchParams.get("name") ?? "Player";
     const roomCode = searchParams.get("room") ?? "ABCDEF";
     const playerNum = searchParams.get("player") ?? "1";
-    router.push(`/display_info/character_and_skills?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+    router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
   }
 
   return (

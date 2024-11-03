@@ -14,8 +14,12 @@ export default function DrawingAbility() {
   const name = searchParams.get("name") ?? "Player";
   const [showRound, setShowRound] = useState(true);
 
-  // TODO: STATE FOR ROUND NUMBER
   const [roundNumber, setRoundNumber] = useState(0);
+  useEffect(() => {
+    const a = parseInt(localStorage.getItem("round_number") ?? "0", 10);
+    setRoundNumber(a + 1);
+    localStorage.setItem("round_number", (a + 1).toString());
+  }, []);
 
   const [timeRemaining, setTimeRemaining] = useState(20);
 
@@ -37,13 +41,11 @@ export default function DrawingAbility() {
 
     const roomCode = searchParams.get("room") ?? "ABCDEF";
     const playerNum = searchParams.get("player") ?? "1";
-    setShowRound(roundNumber + 1);
-    if (roundNumber > 1){
-    router.push(`/select_ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
-    }
-    else 
-    {
+    // Skip ability select for first two rounds.
+    if (roundNumber <= 2){
       router.push(`/attack?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
+    } else {
+      router.push(`/select_ability?name=${encodeURIComponent(name)}&room=${roomCode}&player=${playerNum}`);
     }
   }
 

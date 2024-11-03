@@ -25,7 +25,7 @@ export interface PlayerState {
 export interface GameState {
   player_1: PlayerState | null,
   player_2: PlayerState | null,
-  state: "waiting" | "drawing" | "fighting" | "end",
+  round: number,
 }
 
 export interface AttackOutcome {
