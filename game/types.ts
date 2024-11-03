@@ -3,7 +3,7 @@ import { Socket } from "socket.io";
 export interface Move {
   name: string
   description: string
-  animation: string
+  icon: string
 }
 
 export interface Character {
@@ -13,10 +13,9 @@ export interface Character {
 }
 
 export interface PlayerState {
-  ws: Socket,
-  name: string,
-  Character: Character | null,
-  selected_move_idx: number,
+  ws: Socket
+  name: string
+  Character: Character | null
 }
 
 export interface GameState {

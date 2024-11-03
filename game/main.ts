@@ -1,4 +1,4 @@
-import { GameState } from "./types.js";
+import { GameState, PlayerState } from "./types.js";
 import { Socket } from "socket.io";
 import { on_event, send_event } from "@/websocket/events";
 
@@ -24,9 +24,8 @@ export class GameManager {
     }
 
     const room = this.rooms.get(room_code)!;
-    const player_data = {
+    const player_data: PlayerState = {
       Character: null,
-      selected_move_idx: -1,
       ws: socket,
       name: socket.handshake.auth.name as string
     };
@@ -119,7 +118,7 @@ export class GameManager {
     const room = this.rooms.get(room_code)!;
     room.state = "drawing";
     room.round = 0;
-    send_event(room.player_1!.ws, "start_round");
-    send_event(room.player_2!.ws, "start_round");
+    send_event(room.player_1!.ws, "start_drawing");
+    send_event(room.player_2!.ws, "start_drawing");
   }
 }

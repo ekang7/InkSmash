@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Character } from "@/game/types";
+import { Character, Move } from "@/game/types";
 
 interface WebsocketEvent {
   type: string;
@@ -36,8 +36,8 @@ interface StartGameEvent extends WebsocketEvent {
   payload: undefined;
 }
 
-interface StartRoundEvent extends WebsocketEvent {
-  type: "start_round";
+interface StartDrawingEvent extends WebsocketEvent {
+  type: "start_drawing";
   payload: undefined;
 }
 
@@ -53,19 +53,34 @@ interface SubmitDrawingEvent extends WebsocketEvent {
   };
 }
 
+interface ChooseMovesEvent extends WebsocketEvent {
+  type: "choose_moves";
+  payload: {
+    current: Move[];
+    new: Move;
+  }
+}
+
+interface SwapMoveEvent extends WebsocketEvent {
+  type: "swap_move";
+  payload: {
+    move_idx: number
+  }
+}
+
 interface CharacterInfoEvent extends WebsocketEvent {
   type: "character_info";
   payload: {
-    player_1: Character;
-    player_2: Character;
+    info: Character;
+    player_num: number;
   };
 }
 
-interface SelectMoveEvent extends WebsocketEvent {
-  type: "select_move";
+interface UseMoveEvent extends WebsocketEvent {
+  type: "use_move";
   payload: {
     move_idx: number;
-  };
+  }
 }
 
 interface AttackEvent extends WebsocketEvent {
@@ -73,18 +88,19 @@ interface AttackEvent extends WebsocketEvent {
   payload: {
     player_1_move: string;
     player_2_move: string;
+    outcome: string;
   };
 }
 
-interface EndRoundEvent extends WebsocketEvent {
-  type: "end_round";
+interface ContinueRoundEvent extends WebsocketEvent {
+  type: "continue_round";
   payload: undefined;
 }
 
 interface EndGameEvent extends WebsocketEvent {
   type: "end_game";
   payload: {
-    won: boolean;
+    winner: number;
   };
 }
 
@@ -97,13 +113,15 @@ type AllEvents =
   | SetPlayerNumEvent
   | RoomUpdateEvent
   | StartGameEvent
-  | StartRoundEvent
+  | StartDrawingEvent
   | FinishDrawingEvent
   | SubmitDrawingEvent
+  | ChooseMovesEvent
+  | SwapMoveEvent
   | CharacterInfoEvent
-  | SelectMoveEvent
+  | UseMoveEvent
   | AttackEvent
-  | EndRoundEvent
+  | ContinueRoundEvent
   | EndGameEvent;
 type EventTypes = AllEvents["type"];
 type PayloadMap = {
@@ -127,4 +145,15 @@ export function on_event<T extends EventTypes>(
   if (socket === undefined) return;
   // @ts-expect-error: Avoid complaint on callback type.
   socket.on(type, callback);
+}
+
+export async function wait_event <T extends EventTypes>(
+  socket: Socket | undefined,
+  type: T,
+): Promise<PayloadMap[T]> {
+  return new Promise((resolve) => {
+    if (socket === undefined) return;
+    // @ts-expect-error: Avoid complaint on callback type.
+    socket.once(type, resolve);
+  });
 }

@@ -13,7 +13,7 @@
 - Client -> server.
 - Starts game flow on server.
 
-`start_round`
+`start_drawing`
 - Server -> client.
 - Starts 30 second countdown on server.
 - Clients start enabling drawing after receiving.
@@ -27,32 +27,40 @@
 - Canvas gets exported to PNG -> sent as blob.
 - Server receives blob -> does ✨AI Magic!✨
 
-`character_info(player_1, player_2)`
+`choose_moves(current, new)`
 - Server -> client.
-- After AI Magic, server sends back character info.
+- Sent after AI Magic, server sends back move selection.
+- Current: List of moves already chosen.
+- New: most recent ability drawn.
+
+`swap_move(move_idx)`
+- Client -> server.
+- Sends which move the client has selected to swap out.
+
+`character_info(info, player_num)`
+- Server -> client.
+- Sent once a player has selected their move, and updated their info.
+- Sent to both clients, and each client receives both info.
 - Character info:
   - Blob: Image of character.
   - Moveset: List of moves
     - Name
-    - Description (damage, accuracy, mana, etc.)
-    - Associated animation gif
-- Once client receives, transition into battle screen.
+    - Png: blob of move icon
 
-`select_move(move_idx)`
+`use_move(move_idx)`
 - Client -> server.
 - Sends client's move selection to the server.
 - Server waits to receive both moves before calculating outcome.
 
-`attack(player_1_move, player_2_move)`
+`attack(player_1_move, player_2_move, outcome)`
 - Server -> client.
-- Sends both clients the chosen moves.
+- Sends both clients the chosen moves, and the AI generated outcome.
 
-`end_round`
+`continue_round`
 - Client -> server.
-- Sent once both clients have played the animation and are on the battle end screen.
-- Server waits to receive both before starting the next round.
+- Sent once client has finished playing animations and is ready to continue.
+- Server waits until both clients are ready before sending next round.
 
-`end_game(won)`
-- Server -> client.
-- Sent when someone has won the majority of rounds.
-- Won: Boolean, true if client won, false if client lost.
+`end_game(winner)`
+- Server -> client
+- Sent if a player wins the game.
