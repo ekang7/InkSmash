@@ -4,47 +4,51 @@ import { OpenAI } from "openai";
 import fs from "fs";
 import path from "path";
 
+const API_CALLS_LOG = "./app/logs/api_calls.log";
+
 export async function callOpenAi({
   system_prompt = "you are an expert pokemon rater",
   message_prompt = "come up with moves and corresponding damage scores",
   json_response = '{"moves": [{"move": "move name", "damage": 0}, {"move": "move name", "damage": 0}, {"move": "move name", "damage": 0}]}',
   model = "gpt-4o-mini",
-  imagePath, // New parameter to take image path
+  imageBlobs = [],
+  imagePaths = [],
 }: {
   system_prompt: string;
   message_prompt: string;
   json_response?: string;
   model?: string;
-  imagePath?: string;
+  imageBlobs?: string[];
+  imagePaths?: string[];
 }) {
   try {
     const openai = new OpenAI({
       apiKey: env.OPENAI_API_KEY,
     });
 
-    // Encode the image to Base64
-    let base64Image = "";
-    if (imagePath) {
+    // Encode the images to Base64
+    imagePaths.forEach((imagePath) => {
       const imageBuffer = fs.readFileSync(path.resolve(imagePath));
-      base64Image = imageBuffer.toString("base64");
-    }
+      const base64Image = imageBuffer.toString("base64");
+      imageBlobs.push(base64Image);
+    });
 
     const request_message = [
       {
         type: "text",
-        text: message_prompt + "Respond in JSON format as follows: " + json_response,
+        text: `${message_prompt}. Respond in JSON format as follows: ${json_response}`,
       },
     ];
 
-    // Add the image to the message if provided
-    if (base64Image) {
+    // Add the images to the message if provided
+    imageBlobs.forEach((base64Image) => {
       request_message.push({
         type: "image_url",
         image_url: {
           url: "data:image/png;base64," + base64Image,
         },
       });
-    }
+    });
 
     // console.log(request_message)
 
@@ -58,6 +62,10 @@ export async function callOpenAi({
       max_tokens: 3000,
       temperature: 1,
     });
+
+    // Log the API call
+    fs.appendFileSync(API_CALLS_LOG, system_prompt + "\n" + JSON.stringify(request_message, null, 2) + "\n");
+    fs.appendFileSync(API_CALLS_LOG, JSON.stringify(completion, null, 2) + "\n\n");
 
     if (!completion.choices[0]?.message?.content) {
       return { message: "No response from OpenAI", error: "No response from OpenAI", errorCode: 500 };

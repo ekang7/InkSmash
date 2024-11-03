@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { callOpenAi } from "../openai";
+import { callOpenAi } from "@/openai/openai";
 
 export async function POST(req: Request) {
   const data: { test: string } = await req.json() as { test: string };
@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const agenda_response_json = await callOpenAi({
     system_prompt: "you are an expert pokemon rater",
     message_prompt: data.test,
-    imagePath: "./app/images/test.png"
+    imagePaths: ["./app/images/test.png"]
   });
 
   if (agenda_response_json.error != null) {

@@ -1,6 +1,10 @@
-import { GameState, PlayerState } from "./types.js";
+import { Character, GameState, Move, PlayerState } from "./types.js";
 import { Socket } from "socket.io";
 import { on_event, send_event, single_event } from "@/websocket/events";
+import { callOpenAi } from "@/openai/openai";
+import * as ability_prompts from "@/openai/ability_prompts";
+import * as fight_prompts from "@/openai/fight_prompts";
+import * as character_prompts from "@/openai/character_prompts";
 
 export class GameManager {
   rooms: Map<string, GameState>
@@ -126,8 +130,41 @@ export class GameManager {
     send_event(room.player_2!.ws, "finish_drawing");
 
     // Store saved drawings from both players
-    room.player_1!.Character!.img = (await single_event(room.player_1!.ws, "submit_drawing")).blob;
-    room.player_2!.Character!.img = (await single_event(room.player_2!.ws, "submit_drawing")).blob;
+    const player_1_img = (await single_event(room.player_1!.ws, "submit_drawing")).blob;
+    const player_2_img = (await single_event(room.player_2!.ws, "submit_drawing")).blob;
+
+    // Generate names, stats, and descriptions for each character
+    const generate_char_info = async (img: string): Promise<Character> => {
+      const gpt = await callOpenAi({
+        system_prompt: character_prompts.SYSTEM_PROMPT,
+        message_prompt: character_prompts.MESSAGE_PROMPT,
+        json_response: character_prompts.JSON_FORMAT,
+        imageBlobs: [img]
+      });
+      if(gpt.errorCode !== 200) {
+        console.error("Failed to generate character for player");
+        return {name: "??", description: "??", hp: 100, def: 10, str: 10, img: img, moveset: []};
+      }
+
+      const m = JSON.parse(gpt.message);
+      // @ts-expect-error: Avoid typing message
+      return { name: m.name, description: m.description, hp: m.hp, def: m.def, str: m.str, img: img, moveset: []};
+    }
+
+    const show_character_info = async (player_num: number) => {
+      const player = player_num === 1 ? room.player_1! : room.player_2!;
+      const img = player_num === 1 ? player_1_img : player_2_img;
+
+      player.Character = await generate_char_info(img);
+      send_event(player.ws, "character_info", {info: player.Character, player_num});
+    }
+
+    // Generate and show character info for both players
+    await Promise.all([show_character_info(1), show_character_info(2)]);
+
+    // Wait until both clients have seen the character info
+    await single_event(room.player_1!.ws, "continue_round");
+    await single_event(room.player_2!.ws, "continue_round");
 
     this.start_ability_drawing(room_code);
   }
@@ -153,9 +190,25 @@ export class GameManager {
   private async start_ability_selection(room_code: string, player_1_move_img: string, player_2_move_img: string) {
     const room = this.rooms.get(room_code)!;
 
-    // TODO: Query ChatGPT to generate move names and descriptions
-    const player_1_move = { name: "Punch", description: "A basic punch", img: player_1_move_img };
-    const player_2_move = { name: "Punch", description: "A basic punch", img: player_2_move_img };
+    const generate_ability_info = async (img: string): Promise<Move> => {
+      const gpt = await callOpenAi({
+        system_prompt: ability_prompts.SYSTEM_PROMPT,
+        message_prompt: ability_prompts.MESSAGE_PROMPT,
+        json_response: ability_prompts.JSON_FORMAT,
+        imageBlobs: [img]
+      });
+      if(gpt.errorCode !== 200) {
+        console.error("Failed to generate move for player 1");
+        return {name: "??", description: "??", img: img};
+      }
+
+      const message = JSON.parse(gpt.message);
+      // @ts-expect-error: Avoid typing message
+      return { name: message.name, description: message.description, img: img};
+    }
+
+    const player_1_move = await generate_ability_info(player_1_move_img);
+    const player_2_move = await generate_ability_info(player_2_move_img);
 
     // Send move options to players
     send_event(room.player_1!.ws, "choose_moves", {
@@ -200,14 +253,36 @@ export class GameManager {
     const player_1_move = (await single_event(room.player_1!.ws, "use_move")).move_idx;
     const player_2_move = (await single_event(room.player_2!.ws, "use_move")).move_idx;
 
-    // TODO: Query AI to determine outcome
-    const player_1_dmg = Math.random() * 10;
-    const player_2_dmg = Math.random() * 10;
-    const description =
+    // Query AI to determine outcome
+    const gpt = await callOpenAi({
+      system_prompt: fight_prompts.SYSTEM_PROMPT,
+      message_prompt: fight_prompts.MESSAGE_PROMPT,
+      json_response: fight_prompts.JSON_FORMAT,
+      imageBlobs: [
+        room.player_1!.Character!.img,
+        room.player_2!.Character!.img,
+        room.player_1!.Character!.moveset[player_1_move]!.img,
+        room.player_2!.Character!.moveset[player_2_move]!.img,
+      ]
+    });
+
+    // Default values
+    let player_1_dmg = 0;
+    let player_2_dmg = 0;
+    let description =
       `${room.player_1!.name} used ${room.player_1!.Character!.moveset[player_1_move]!.name} and dealt ${player_1_dmg} damage.\n
         ${room.player_2!.name} used ${room.player_2!.Character!.moveset[player_2_move]!.name} and dealt ${player_2_dmg} damage.`;
 
-    // Update player health
+    if(gpt.errorCode === 200) {
+      const message = JSON.parse(gpt.message);
+      // @ts-expect-error: Avoid typing message
+      player_1_dmg = message.player_1_dmg;
+      // @ts-expect-error: Avoid typing message
+      player_2_dmg = message.player_2_dmg;
+      // @ts-expect-error: Avoid typing message
+      description += '\n' + message.description;
+    }
+
     room.player_1!.Character!.hp -= player_2_dmg;
     room.player_2!.Character!.hp -= player_1_dmg;
 

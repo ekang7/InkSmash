@@ -8,8 +8,12 @@ export interface Move {
 
 export interface Character {
   img: string
-  moveset: Move[]
+  name: string
+  description: string
   hp: number
+  def: number
+  str: number
+  moveset: Move[]
 }
 
 export interface PlayerState {
