@@ -147,7 +147,7 @@ export function on_event<T extends EventTypes>(
   socket.on(type, callback);
 }
 
-export async function wait_event <T extends EventTypes>(
+export async function single_event <T extends EventTypes>(
   socket: Socket | undefined,
   type: T,
 ): Promise<PayloadMap[T]> {

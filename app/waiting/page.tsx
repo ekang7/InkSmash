@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaLink, FaPlay } from "react-icons/fa";
 import { socket } from "@/socket";
-import { on_event, send_event } from "@/websocket/events";
+import { on_event, send_event, single_event } from "@/websocket/events";
 
 export default function Room() {
   const router = useRouter();
@@ -44,16 +44,9 @@ export default function Room() {
     socket.auth.name = name;
     socket.connect();
 
-    let playerNum = 0;
-
     on_event(socket, "connect_error", (error) => {
       alert(error.message);
       router.replace("/");
-    });
-
-    on_event(socket, "set_player_num", ({ player_num }) => {
-      console.log("Am player", player_num);
-      playerNum = player_num;
     });
 
     on_event(socket, "room_update", ({ player_1, player_2 }) => {
@@ -61,9 +54,12 @@ export default function Room() {
       setPlayers([player_1, player_2].filter((player) => player !== null));
     });
 
-    on_event(socket, "start_round", () => {
+    // Now that we set up the socket, we can wait for the server to start the game
+    (async () => {
+      const playerNum = (await single_event(socket, "set_player_num")).player_num;
+      await single_event(socket, "start_drawing");
       router.push(`/drawing?name=${encodeURIComponent(name)}&room=${room_code}&player=${playerNum}`);
-    });
+    })();
   }, [])
 
   return (
