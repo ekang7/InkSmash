@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TypographyH1, TypographyP } from '@/components/ui/typography';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function DisplayCharacter() {
@@ -12,19 +12,20 @@ export default function DisplayCharacter() {
     character_name: string,
     character_image_path: string,
     character_description: string
-  }>({character_name: "Test", character_image_path: "test.png", character_description: "Test"});
+  }>({character_name: "SUPER LONG CHARACTER NAME THAT IS GOING TO BE A PROBLEM", character_image_path: "test.png", character_description: "Test"});
 
   const router = useRouter();
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
-    if (countdown === 0) {
-      router.push('/select_ability');
+    if (countdown <= 0) {
+      router.push('/drawing/ability');
     }
 
     const interval = setInterval(() => {
       setCountdown(countdown - 1);
     }, 1000);
+
     return () => clearInterval(interval);
   }, [countdown, router]);
 
@@ -33,13 +34,15 @@ export default function DisplayCharacter() {
       {countdown > 0 && <TypographyH1 className="text-4xl font-bold text-black">{countdown}</TypographyH1>}
       <Card style={{
         backgroundColor: "#FEFEC8",
-        border: "2px solid #000000",
+        border: "2px solid #51210A",
         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
         borderRadius: "16px",
         padding: "20px",
         minHeight: "400px",
         minWidth: "300px",
-        overflow: "hidden"
+        overflow: "hidden",
+        marginLeft: "10px",
+        marginRight: "10px"
       }}>
         <CardHeader className="flex flex-col items-center mb-2">
           <CardTitle>Opponent: {opponent_info.character_name}</CardTitle>
