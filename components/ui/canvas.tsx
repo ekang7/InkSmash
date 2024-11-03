@@ -105,7 +105,7 @@ export default Canvas;
 const sketch = (p5: p5Types) => {
   let squareSize: number;
   const numSquaresWidth = 80;
-  const numSquaresHeight = Math.floor(1.8 * numSquaresWidth);
+  const numSquaresHeight = Math.floor(1.5 * numSquaresWidth);
   let canvasWidth: number;
   let canvasHeight: number;
   let appearance: p5Types.Color[][] = [];
@@ -175,13 +175,6 @@ const sketch = (p5: p5Types) => {
     squareSize = canvasWidth / numSquaresWidth;
   }
 
-  p5.windowResized = () => {
-    updateCanvasSize();
-    p5.resizeCanvas(canvasWidth, canvasHeight);
-    canvas.resizeCanvas(canvasWidth, canvasHeight);
-    createGrid();
-    redrawCanvas();
-  };
 
   function createGrid() {
     canvas.background(backgroundColor);
@@ -196,13 +189,13 @@ const sketch = (p5: p5Types) => {
   }
 
   function clean() {
-    createGrid();
     const transparentColor = p5.color(255, 255, 255, 0);
     for (let j = 0; j < numSquaresHeight; j++) {
       for (let i = 0; i < numSquaresWidth; i++) {
         appearance[j][i] = transparentColor;
       }
     }
+    createGrid();
   }
 
   function download(filename = "myCharacter") {

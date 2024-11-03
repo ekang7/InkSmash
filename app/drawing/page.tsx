@@ -32,18 +32,20 @@ export default function Drawing() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FEFEC8] space-y-8">
-      <div className="text-center mt-5">
-        <TypographyH1 className="text-4xl font-bold text-black">Get drawing, {name}!</TypographyH1>
+    <div className="min-h-screen bg-[#FEFEC8]">
+    <div className="flex flex-col items-center justify-center space-y-8">
+      <div className="text-center mt-0">
+        <TypographyH1 className="text-2xl font-bold text-black">Get drawing, {name}!</TypographyH1>
         {showRound && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 flex items-center justify-center">
             <Round roundNumber={roundNumber} onHide={handleHideRound} customText={customText} />
           </div>
         )}
-        <div className="relative mt-8">
+        <div className="relative mt-1">
           <Canvas initialTime={100} next_page="/score" />
         </div>
       </div>
+    </div>
     </div>
   );
 }
@@ -59,11 +61,12 @@ export function Ability() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FEFEC8] space-y-8">
-      <div className="text-center mt-5">
+    <div className="min-h-screen bg-[#FEFEC8]">
+    <div className="flex flex-col items-center justify-center space-y-8">
+      <div className="text-center mt-">
         <TypographyH1 className="text-4xl font-bold text-black">Get drawing, {name}!</TypographyH1>
         {showRound && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 flex items-center justify-center">
             <Round roundNumber={1} onHide={handleHideRound} customText="Draw your character!" />
           </div>
         )}
@@ -71,6 +74,7 @@ export function Ability() {
           <Canvas initialTime={100} next_page="/score" />
         </div>
       </div>
+    </div>
     </div>
   );
 }
