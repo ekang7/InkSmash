@@ -60,7 +60,6 @@ export default function Home() {
 
   return (
     <>
-    <Canvas initialTime={10}/>
     <div className="flex flex-col items-center min-h-screen pt-10 space-y-14 bg-[#FEFEC8]">
     <img src="/InkSmash1.png" alt="InkSmash Logo" className="w-80"/>
 

@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { ReactP5Wrapper, SketchProps } from "@p5-wrapper/react";
 import p5Types from "p5";
+import { useRouter } from 'next/navigation';
 
 interface CanvasProps {
   initialTime: number;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ initialTime }) => {
+  const router = useRouter(); // For navigation
   const [timeRemaining, setTimeRemaining] = useState<number>(initialTime);
   const [showCanvas, setShowCanvas] = useState<boolean>(true);
   const [isDrawingEnabled, setIsDrawingEnabled] = useState<boolean>(true);
@@ -26,9 +28,12 @@ const Canvas: React.FC<CanvasProps> = ({ initialTime }) => {
           return prevTime - 1;
         });
       }, 1000);
+    } else {
+      // Redirect to "/score" after time runs out
+      router.push("/score");
     }
     return () => clearInterval(timerId);
-  }, [timeRemaining]);
+  }, [timeRemaining, router]);
 
   const closeCanvas = () => {
     setShowCanvas(false);
@@ -127,25 +132,25 @@ const sketch = (p5: p5Types) => {
     colorPicker.parent("controls");
     colorPicker.size(50, 28);
 
-    eraseButton = p5.createButton("ERASE MODE");
+    eraseButton = p5.createButton("Erase");
     eraseButton.size(100, 32);
     eraseButton.parent("controls");
     eraseButton.style("color", "black");
     eraseButton.mousePressed(switchDrawMode);
 
-    saveButton = p5.createButton("SAVE");
-    saveButton.size(80, 32);
-    saveButton.parent("controls");
-    saveButton.style("color", "black");
-    saveButton.mousePressed(closeCanvas);
+    // saveButton = p5.createButton("SAVE");
+    // saveButton.size(80, 32);
+    // saveButton.parent("controls");
+    // saveButton.style("color", "black");
+    // saveButton.mousePressed(closeCanvas);
 
-    downloadButton = p5.createButton("DOWNLOAD PNG");
-    downloadButton.size(150, 32);
-    downloadButton.parent("controls");
-    downloadButton.style("color", "black");
-    downloadButton.mousePressed(download);
+    // downloadButton = p5.createButton("DOWNLOAD PNG");
+    // downloadButton.size(150, 32);
+    // downloadButton.parent("controls");
+    // downloadButton.style("color", "black");
+    // downloadButton.mousePressed(download);
 
-    clearButton = p5.createButton("CLEAR");
+    clearButton = p5.createButton("Clear");
     clearButton.size(80, 32);
     clearButton.parent("controls");
     clearButton.style("color", "black");
@@ -184,7 +189,7 @@ const sketch = (p5: p5Types) => {
 
   function switchDrawMode() {
     eraseMode = !eraseMode;
-    let buttonText = eraseMode ? "DRAW MODE" : "ERASE MODE";
+    let buttonText = eraseMode ? "Draw" : "Erase";
     eraseButton.html(buttonText);
   }
 
@@ -267,7 +272,7 @@ const sketch = (p5: p5Types) => {
       p5.fill(255);
       p5.textAlign(p5.CENTER, p5.CENTER);
       p5.textSize(32);
-      p5.text("Drawing Disabled", canvasWidth / 2, canvasHeight / 2);
+      p5.text("Time's Up!", canvasWidth / 2, canvasHeight / 2);
     }
   };
 
