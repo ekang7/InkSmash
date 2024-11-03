@@ -5,9 +5,9 @@ import fs from "fs";
 import path from "path";
 
 export async function callOpenAi({
-  system_prompt = "you are an expert pokemon rater",
-  message_prompt = "come up with moves and corresponding damage scores",
-  json_response = '{"moves": [{"move": "move name", "damage": 0}, {"move": "move name", "damage": 0}, {"move": "move name", "damage": 0}]}',
+  system_prompt,
+  message_prompt,
+  json_response,
   model = "gpt-4o-mini",
   imagePath, // New parameter to take image path
 }: {
@@ -29,7 +29,7 @@ export async function callOpenAi({
       base64Image = imageBuffer.toString("base64");
     }
 
-    const request_message = [
+    const request_message: { type: string; text?: string; image_url?: { url: string } }[] = [
       {
         type: "text",
         text: message_prompt + "Respond in JSON format as follows: " + json_response,
@@ -45,8 +45,6 @@ export async function callOpenAi({
         },
       });
     }
-
-    // console.log(request_message)
 
     // Send request to OpenAI with text and image
     const completion = await openai.chat.completions.create({

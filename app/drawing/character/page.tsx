@@ -14,7 +14,7 @@ export default function Drawing() {
   // NEEDS TO ACTUALLY BE IMPLEMENTED
   const [roundNumber, setRoundNumber] = useState(1);
   const [customText, setCustomText] = useState("Draw your character!");
-  const [nextPage, setNextPage] = useState("/score");
+  const [nextPage, setNextPage] = useState("/character/ability");
 
   useEffect(() => {
     if (roundNumber === 1) {
