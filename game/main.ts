@@ -134,20 +134,33 @@ export class GameManager {
 
     // Generate names, stats, and descriptions for each character
     const generate_char_info = async (img: string): Promise<Character> => {
-      const gpt = await callOpenAi({
-        system_prompt: character_prompts.SYSTEM_PROMPT,
-        message_prompt: character_prompts.MESSAGE_PROMPT,
-        json_response: character_prompts.JSON_FORMAT,
-        imageBlobs: [img]
-      });
-      if(gpt.status !== 200) {
-        console.error("Failed to generate character for player");
-        console.error(gpt);
-        return {name: "??", description: "??", max_hp: 100, hp: 100, def: 10, str: 10, img: img, moveset: []};
-      }
+      try {
+        const gpt = await callOpenAi({
+          system_prompt: character_prompts.SYSTEM_PROMPT,
+          message_prompt: character_prompts.MESSAGE_PROMPT,
+          json_response: character_prompts.JSON_FORMAT,
+          imageBlobs: [img]
+        });
+        if (gpt.status !== 200) {
+          console.error("Failed to generate character for player");
+          console.error(gpt);
+          throw new Error("Failed to generate character");
+        }
 
-      const m = JSON.parse(gpt.message);
-      return { name: m.name, description: m.description, max_hp: m.hp, hp: m.hp, def: m.def, str: m.str, img: img, moveset: []};
+        const m = JSON.parse(gpt.message);
+        return {
+          name: m.name,
+          description: m.description,
+          max_hp: m.hp,
+          hp: m.hp,
+          def: m.def,
+          str: m.str,
+          img: img,
+          moveset: []
+        };
+      } catch(e){
+        return { name: "??", description: "??", max_hp: 100, hp: 100, def: 10, str: 10, img: img, moveset: [] };
+      }
     }
 
     const show_character_info = async (player_num: number) => {
@@ -202,19 +215,23 @@ export class GameManager {
     const room = this.rooms.get(room_code)!;
 
     const generate_ability_info = async (img: string): Promise<Move> => {
-      const gpt = await callOpenAi({
-        system_prompt: ability_prompts.SYSTEM_PROMPT,
-        message_prompt: ability_prompts.MESSAGE_PROMPT,
-        json_response: ability_prompts.JSON_FORMAT,
-        imageBlobs: [img]
-      });
-      if(gpt.status !== 200) {
-        console.error("Failed to generate move for player 1");
-        return {name: "??", description: "??", img: img};
-      }
+      try {
+        const gpt = await callOpenAi({
+          system_prompt: ability_prompts.SYSTEM_PROMPT,
+          message_prompt: ability_prompts.MESSAGE_PROMPT,
+          json_response: ability_prompts.JSON_FORMAT,
+          imageBlobs: [img]
+        });
+        if (gpt.status !== 200) {
+          console.error("Failed to generate move for player 1");
+          throw new Error("Failed to generate move");
+        }
 
-      const message = JSON.parse(gpt.message);
-      return { name: message.name, description: message.description, img: img};
+        const message = JSON.parse(gpt.message);
+        return { name: message.name, description: message.description, img: img };
+      }catch(e) {
+        return { name: "??", description: "??", img: img };
+      }
     }
 
     const player_1_move = await generate_ability_info(player_1_move_img);
@@ -264,6 +281,8 @@ export class GameManager {
       const swapped_idx = (await single_event(player.ws, "swap_move")).move_idx;
       player.Character!.moveset[swapped_idx] = player_num === 1 ? player_1_move : player_2_move;
 
+      await this.delay(1000);
+
       // Send updated character info to both players
       send_event(room.player_1!.ws, "character_info", {
         info: player.Character!,
@@ -311,10 +330,12 @@ export class GameManager {
         ${room.player_2!.name} used ${room.player_2!.Character!.moveset[player_2_move.move_idx]!.name} and dealt ${player_2_dmg} damage.`;
 
     if(gpt.status === 200) {
-      const message = JSON.parse(gpt.message);
-      player_1_dmg = message.player_1_dmg;
-      player_2_dmg = message.player_2_dmg;
-      description += '\n' + message.description;
+      try {
+        const message = JSON.parse(gpt.message);
+        player_1_dmg = message.player_1_dmg;
+        player_2_dmg = message.player_2_dmg;
+        description += '\n' + message.description;
+      } catch(e) {}
     }
 
     room.player_1!.Character!.hp -= player_2_dmg;

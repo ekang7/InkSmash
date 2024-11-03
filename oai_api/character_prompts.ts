@@ -4,7 +4,7 @@ export const SYSTEM_PROMPT = "You are an expert dungeon master, known for choreo
   "describe their stats based on the drawing before the battle unfolds.";
 
 export const MESSAGE_PROMPT = "Player 1 has submitted a drawing of their character. " +
-  "Please provide a name, description, and stats for the character." +
+  "Please provide a name, description, and stats for the character. Keep the description short, between 1-2 sentences." +
   "Do not make the character too powerful or too weak, but make sure it makes sense with" +
   "their design. Keep in mind that the character will be used in a fight against another character. " +
   "To make sure the stats are balanced, hp should be between 75-150, def should be between 5-15, and str should be between 5-15.";

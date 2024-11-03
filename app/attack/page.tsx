@@ -74,15 +74,15 @@ export default function Attack() {
       </div>
 
       {/* GIF with health bar - Right */}
-      <div className="absolute bottom-80 right-2 z-40 mb-10">
+      <div className="absolute bottom-20 right-2 z-40 mb-10">
         {info && (
           <div className="relative flex flex-col items-center">
-            <div className="mb-2 h-4 w-48 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full rounded-full bg-red-500" style={{ width: `${info.hp / info.max_hp}%` }}></div>
+            <div className="mb-2 h-4 w-32 overflow-hidden rounded-full bg-gray-100">
+              <div className="h-full rounded-full bg-red-500" style={{ width: `${info.hp / info.max_hp * 100}%` }}></div>
               {" "}
               {/* Adjust width for health level */}
             </div>
-            <img src={info.img} />
+            <img src={info.img} className={"w-32"}/>
           </div>
         )}
       </div>
@@ -91,11 +91,11 @@ export default function Attack() {
       <div className="absolute bottom-20 left-2 z-40 mb-10">
         {opp && (
           <div className="relative flex flex-col items-center">
-            <div className="mb-2 h-4 w-64 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full rounded-full bg-red-500" style={{ width: `${opp.hp / opp.max_hp}%` }}></div>
+            <div className="mb-2 h-4 w-32 overflow-hidden rounded-full bg-gray-100">
+              <div className="h-full rounded-full bg-red-500" style={{ width: `${opp.hp / opp.max_hp * 100}%` }}></div>
               {/* Adjust width for health level */}
             </div>
-            <img src={opp.img} />
+            <img src={opp.img} className={"w-32"}/>
           </div>
         )}
       </div>

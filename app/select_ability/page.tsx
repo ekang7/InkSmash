@@ -45,6 +45,8 @@ export default function SelectAbility() {
         </div>
       </button>
 
+      <p>Swap out one of your moves:</p>
+
       {moves.map((moveItem, index) => (
         <button
           key={index}
